@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Spotix — Güçlü Mini Player</title>
+<style>
+/* -------------------------
+   TEMEL STİLLER & LAYOUT
+   ------------------------- */
+:root{
+  --bg1:#04040a; --bg2:#080026;
+  --panel: rgba(255,255,255,0.03);
+  --accent1:#7b2cff; --accent2:#00c2ff;
+  --muted: rgba(255,255,255,0.6);
+}
+*{box-sizing:border-box;font-family:Inter, "Poppins", system-ui, Arial, sans-serif}
+html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(--bg2));
+         background-size:400% 400%; animation: bgAnim 18s linear infinite; color:#fff}
+@keyframes bgAnim{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.app{display:flex;height:100vh;gap:12px;align-items:stretch}
+
+/* -------------------------
+   SIDEBAR (QUEUE)
+   ------------------------- */
+.sidebar{
+  width:72px;background:var(--panel);backdrop-filter:blur(8px);
+  display:flex;flex-direction:column;align-items:center;padding:14px 8px;transition:width .28s;
+  position:relative;
+}
+.sidebar.open{width:320px}
+.menu-toggle{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;margin-bottom:6px}
+.menu-toggle:hover{color:#fff}
+.queue-area{display:none;flex-direction:column;align-items:center;width:100%;height:100%}
+.sidebar.open .queue-area{display:flex}
+.queue-input{
+  width:88%;padding:10px;border-radius:10px;border:none;margin:8px 0;background:rgba(255,255,255,0.03);
+  color:#fff;text-align:left; outline:none;
+}
+.queue-add-btn{width:88%;padding:10px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent1),#6fe0ff);
+  color:#000;font-weight:700;cursor:pointer}
+.queue-list{width:94%;margin-top:10px;overflow:auto;flex:1;padding-bottom:12px}
+.queue-item{
+  display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;margin:8px 0;background:rgba(255,255,255,0.02);
+  cursor:grab; user-select:none;
+}
+.queue-item.dragging{opacity:0.4}
+.queue-thumb{width:56px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0}
+.queue-info{display:flex;flex-direction:column;flex:1;min-width:0}
+.queue-title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.queue-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.item-controls{display:flex;gap:6px;align-items:center}
+.icon-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;border-radius:6px}
+.icon-btn:hover{color:#fff;background:rgba(255,255,255,0.02)}
+
+/* popup menu */
+.item-menu{position:relative}
+.menu-body{position:absolute;right:8px;top:34px;background:rgba(0,0,0,0.6);border-radius:8px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,0.6);display:flex;flex-direction:column}
+.menu-body button{border:none;background:none;color:#fff;padding:8px 12px;text-align:left;cursor:pointer;border-radius:6px}
+.menu-body button:hover{background:rgba(255,255,255,0.03)}
+
+/* -------------------------
+   MAIN PLAY AREA
+   ------------------------- */
+.main{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;padding:20px}
+.player-card{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px;border-radius:16px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 10px 40px rgba(0,0,0,0.6)}
+.disk{
+  width:260px;height:260px;border-radius:50%;overflow:hidden;border:6px solid rgba(255,255,255,0.04);
+  display:flex;align-items:center;justify-content:center;position:relative;animation:spin 6s linear infinite;
+  box-shadow:0 20px 60px rgba(80,0,255,0.12);
+}
+.disk.empty{background: radial-gradient(circle at 30% 20%, rgba(120,0,255,0.06), transparent 10%), rgba(0,0,0,0.12)}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.disk img.thumb{width:100%;height:100%;object-fit:cover;display:block}
+.song-title{font-weight:600;color:#efeaff;font-size:18px;max-width:520px;text-align:center}
+.song-sub{font-size:13px;color:var(--muted)}
+
+/* controls */
+.controls{display:flex;gap:12px;align-items:center}
+.ctrl-btn{background:linear-gradient(135deg,var(--accent1),var(--accent2));border:none;color:#fff;padding:10px 16px;border-radius:12px;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.45)}
+.ctrl-small{padding:8px 12px;border-radius:10px}
+
+/* volume column on right */
+.vol-col{position:absolute;right:18px;bottom:18%;display:flex;flex-direction:column;gap:12px;align-items:center}
+.vol-btn{width:48px;height:48px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent1),#7a32ff);color:#fff;font-size:18px;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,0.5)}
+.vol-level{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;color:var(--muted);margin-top:6px}
+
+/* responsive tweaks */
+@media (max-width:900px){
+  .sidebar{display:none}
+  .vol-col{right:8px;bottom:8%}
+  .song-title{font-size:16px}
+}
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <button class="menu-toggle" id="menuBtn" title="Queue aç/kapa">☰</button>
+
+      <div class="queue-area" id="queueArea">
+        <input id="queueInput" class="queue-input" placeholder="YouTube linki yapıştır veya ID (ör: xVjLar3I5hM)" />
+        <button class="queue-add-btn" id="addBtn">➕ Sıraya Ekle</button>
+        <div class="queue-list" id="queueList" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="player-card" id="playerCard">
+        <div class="disk empty" id="disk" title="Disk (kapak burada gösterilir)"></div>
+
+        <div style="text-align:center">
+          <div class="song-title" id="songTitle">Sırada şarkı yok</div>
+          <div class="song-sub" id="songSub">Sıraya şarkı ekle ve Oynat'a bas</div>
+        </div>
+
+        <div class="controls">
+          <button class="ctrl-btn ctrl-small" id="rew10">⏪ 10s</button>
+          <button class="ctrl-btn" id="playBtn">▶️ Oynat</button>
+          <button class="ctrl-btn ctrl-small" id="fwd10">10s ⏩</button>
+          <button class="ctrl-btn ctrl-small" id="stopBtn" title="Durdur ve sırayı başa al">⏹︎ Durdur</button>
+        </div>
+        <div style="margin-top:6px;color:var(--muted);font-size:13px" id="infoLine"></div>
+      </div>
+
+      <!-- HIDDEN YT PLAYER (iframe API) -->
+      <div id="player" style="display:none"></div>
+    </div>
+
+    <!-- VOLUME controls -->
+    <div class="vol-col" id="volCol">
+      <button class="vol-btn" id="volUp">🔊</button>
+      <button class="vol-btn" id="volDown">🔉</button>
+      <div class="vol-level" id="volLabel">100%</div>
+    </div>
+  </div>
+
+<script>
+/* =================================================================================
+   SPOTIX — Tam Kapsamlı Player
+   - Queue: ekle, sil (onaylı), yukarı/aşağı taşı, drag & drop reorder
+   - Gelişmiş URL parsing: watch?v=..., youtu.be/..., embed, shorts, &list paramleri
+   - Playlist-like linklerde bile video oynatmak için V parametresi öncelikli alınıyor
+   - oEmbed (noembed) ile başlık & thumbnail çekme (API-key gerektirmez)
+   - YouTube IFrame API kullanılarak arka planda çalma, setVolume ve seek
+   - Silme işlemleri onaylı — hiçbir şeyi senden habersiz silmez
+   - 10s ileri/geri, play/pause/stop, ses kontrolleri
+   ================================================================================= */
+
+/* ---------- Global state ---------- */
+let player = null;
+let isPlaying = false;
+let queue = []; // { id, title, thumbnail, originalUrl }
+let currentIndex = -1;
+let volume = 100;
+
+/* ---------- Helper: robust parse for many YouTube URL variants ---------- */
+function extractVideoId(raw) {
+  if(!raw) return null;
+  raw = raw.trim();
+
+  // If user pasted only an ID (11 chars)
+  if(/^[A-Za-z0-9_-]{11}$/.test(raw)) return raw;
+
+  // Try URL parsing
+  try {
+    const u = new URL(raw.startsWith('http') ? raw : ('https://' + raw));
+    // If there's a v param, that's our best bet (handles &list etc)
+    if(u.searchParams.has('v')) {
+      return u.searchParams.get('v');
+    }
+    // If path contains 11-char id (shorts / embed / watch without v)
+    const parts = u.pathname.split('/').filter(Boolean);
+    for(let p of parts) {
+      if(/^[A-Za-z0-9_-]{11}$/.test(p)) return p;
+    }
+    // youtu.be in hostname sometimes with path
+    if(u.hostname && (u.hostname.includes('youtu.be') || u.hostname.includes('youtube.com'))) {
+      // fallback regex on full url
+      const m = raw.match(/(?:v=|\/)([A-Za-z0-9_-]{11})/);
+      return m ? m[1] : null;
+    }
+  } catch(e){
+    // Not a full URL - try regex
+    const m = raw.match(/([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+  // final regex fallback
+  const m = raw.match(/(?:v=|\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+/* ---------- oEmbed fetch for title + thumbnail (no API key) ---------- */
+async function fetchVideoInfo(videoUrlOrId) {
+  const testUrl = videoUrlOrId.startsWith('http') ? videoUrlOrId : ('https://www.youtube.com/watch?v=' + videoUrlOrId);
+  const endpoint = 'https://noembed.com/embed?url=' + encodeURIComponent(testUrl);
+  try {
+    const res = await fetch(endpoint);
+    if(!res.ok) throw new Error('oembed fail');
+    const j = await res.json();
+    // j.title, j.thumbnail_url
+    return {
+      title: j.title || null,
+      thumbnail: j.thumbnail_url || null
+    };
+  } catch(err){
+    // fallback thumbnail via known pattern
+    const id = extractVideoId(videoUrlOrId);
+    return { title: null, thumbnail: id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null };
+  }
+}
+
+/* ---------- UI references ---------- */
+const menuBtn = document.getElementById('menuBtn');
+const sidebar = document.getElementById('sidebar');
+const queueArea = document.getElementById('queueArea');
+const queueInput = document.getElementById('queueInput');
+const addBtn = document.getElementById('addBtn');
+const queueList = document.getElementById('queueList');
+const disk = document.getElementById('disk');
+const songTitle = document.getElementById('songTitle');
+const songSub = document.getElementById('songSub');
+const playBtn = document.getElementById('playBtn');
+const rewBtn = document.getElementById('rew10');
+const fwdBtn = document.getElementById('fwd10');
+const stopBtn = document.getElementById('stopBtn');
+const volUpBtn = document.getElementById('volUp');
+const volDownBtn = document.getElementById('volDown');
+const volLabel = document.getElementById('volLabel');
+const infoLine = document.getElementById('infoLine');
+
+/* ---------- Toggle sidebar ---------- */
+menuBtn.addEventListener('click', ()=> sidebar.classList.toggle('open'));
+
+/* ---------- YouTube IFrame API bootstrap ---------- */
+(function loadYT(){
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
+})();
+
+function onYouTubeIframeAPIReady(){
+  player = new YT.Player('player', {
+    height: '0', width: '0', videoId: '',
+    playerVars: {
+      playsinline: 1,
+      controls: 0,
+      modestbranding: 1,
+      rel: 0,
+      showinfo: 0
+    },
+    events: {
+      onReady: onPlayerReady,
+      onStateChange: onPlayerStateChange,
+      onError: onPlayerError
+    }
+  });
+}
+
+function onPlayerReady(ev){
+  try { player.setVolume(volume); } catch(e){}
+  updateVolumeUI();
+}
+
+/* ---------- Player events ---------- */
+function onPlayerStateChange(ev){
+  const S = YT.PlayerState;
+  if(ev.data === S.ENDED){
+    // otomatik olarak sıradaki çalsın
+    playNext();
+  } else if(ev.data === S.PLAYING){
+    isPlaying = true;
+    playBtn.innerText = '⏸️ Duraklat';
+    infoLine.innerText = 'Çalıyor: ' + (currentIndex + 1) + ' / ' + queue.length;
+    // ensure thumbnail is shown
+    renderDiskThumb();
+  } else if(ev.data === S.PAUSED || ev.data === S.UNSTARTED){
+    isPlaying = false;
+    playBtn.innerText = '▶️ Oynat';
+  } else if(ev.data === S.BUFFERING){
+    infoLine.innerText = 'Buffering...';
+    // attempt to resume
+    setTimeout(()=>{ try{ player.playVideo(); }catch(e){} }, 600);
+  }
+}
+
+function onPlayerError(ev){
+  console.warn('YT Player Error', ev);
+  // bazı hatalarda (playback) sıradaki dene
+  setTimeout(()=>{ playNext(); }, 700);
+}
+
+/* ---------- Queue operations ---------- */
+
+async function addToQueue(){
+  const raw = (queueInput.value || '').trim();
+  if(!raw){ alert('Bir YouTube linki veya ID gir.'); return; }
+  const id = extractVideoId(raw);
+  if(!id){ alert('Geçerli YouTube linki değil veya ID alınamıyor.'); return; }
+
+  const orig = raw;
+  // optimistic push
+  const index = queue.length;
+  queue.push({ id, title: 'Yükleniyor...', thumbnail: null, originalUrl: orig });
+  updateQueueUI();
+  queueInput.value = '';
+  // fetch title+thumb
+  const info = await fetchVideoInfo(orig);
+  queue[index].title = info.title || ('Video ' + (index+1));
+  queue[index].thumbnail = info.thumbnail || `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+  updateQueueUI();
+  // if this is first track, auto-load it
+  if(queue.length === 1){
+    currentIndex = 0;
+    loadAndPlayIndex(0);
+  }
+}
+
+/* update UI list */
+function updateQueueUI(){
+  queueList.innerHTML = '';
+  queue.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'queue-item';
+    row.draggable = true;
+    row.dataset.index = i;
+
+    // thumb
+    const img = document.createElement('img');
+    img.className = 'queue-thumb';
+    img.src = item.thumbnail || '';
+    row.appendChild(img);
+
+    // text
+    const txt = document.createElement('div');
+    txt.className = 'queue-info';
+    const t = document.createElement('div');
+    t.className = 'queue-title';
+    t.innerText = item.title || ('Video ' + (i+1));
+    const s = document.createElement('div');
+    s.className = 'queue-sub';
+    s.innerText = item.id;
+    txt.appendChild(t); txt.appendChild(s);
+    row.appendChild(txt);
+
+    // controls (menu)
+    const controls = document.createElement('div');
+    controls.className = 'item-controls';
+
+    // play now
+    const playNow = document.createElement('button');
+    playNow.className = 'icon-btn';
+    playNow.title = 'Şimdi çal';
+    playNow.innerText = '▶';
+    playNow.addEventListener('click', (ev)=> { ev.stopPropagation(); playFromQueue(i); });
+
+    // move up
+    const upBtn = document.createElement('button');
+    upBtn.className = 'icon-btn';
+    upBtn.title = 'Yukarı taşı';
+    upBtn.innerText = '↑';
+    upBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); moveUp(i); });
+
+    // move down
+    const downBtn = document.createElement('button');
+    downBtn.className = 'icon-btn';
+    downBtn.title = 'Aşağı taşı';
+    downBtn.innerText = '↓';
+    downBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); moveDown(i); });
+
+    // delete (with confirmation!)
+    const delBtn = document.createElement('button');
+    delBtn.className = 'icon-btn';
+    delBtn.title = 'Sil (onay gerekiyor)';
+    delBtn.innerText = '🗑';
+    delBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); confirmRemove(i); });
+
+    controls.appendChild(playNow);
+    controls.appendChild(upBtn);
+    controls.appendChild(downBtn);
+    controls.appendChild(delBtn);
+
+    row.appendChild(controls);
+
+    // click row -> play this
+    row.addEventListener('click', ()=>{ playFromQueue(i); });
+
+    // drag events
+    row.addEventListener('dragstart', (ev)=>{
+      row.classList.add('dragging');
+      ev.dataTransfer.effectAllowed = 'move';
+      ev.dataTransfer.setData('text/plain', i.toString());
+    });
+    row.addEventListener('dragend', ()=> row.classList.remove('dragging'));
+    row.addEventListener('dragover', (ev)=> ev.preventDefault());
+    row.addEventListener('drop', (ev)=>{
+      ev.preventDefault();
+      const from = parseInt(ev.dataTransfer.getData('text/plain'));
+      const to = parseInt(row.dataset.index);
+      if(!isNaN(from) && !isNaN(to) && from !== to) {
+        reorderQueue(from, to);
+      }
+    });
+
+    queueList.appendChild(row);
+  });
+}
+
+/* reorder by indices (drag/drop) */
+function reorderQueue(from, to) {
+  if(from === to) return;
+  const item = queue.splice(from,1)[0];
+  queue.splice(to,0,item);
+  // adjust currentIndex accordingly
+  if(currentIndex === from) currentIndex = to;
+  else if(from < currentIndex && to >= currentIndex) currentIndex--;
+  else if(from > currentIndex && to <= currentIndex) currentIndex++;
+  updateQueueUI();
+}
+
+/* move up/down helpers */
+function moveUp(i){
+  if(i <= 0) return;
+  reorderQueue(i, i-1);
+}
+function moveDown(i){
+  if(i >= queue.length-1) return;
+  reorderQueue(i, i+1);
+}
+
+/* delete with confirm */
+function confirmRemove(i){
+  const item = queue[i];
+  const ok = confirm(`'${item.title || item.id}' silinsin mi? (Geri alamazsın)`);
+  if(!ok) return;
+  // remove
+  removeFromQueue(i);
+}
+function removeFromQueue(i){
+  const wasCurrent = (i === currentIndex);
+  queue.splice(i,1);
+  if(queue.length === 0) {
+    currentIndex = -1;
+    stopAndClear();
+  } else {
+    if(wasCurrent) {
+      // if removed current, start the same index (which is the next item)
+      const nextIndex = i < queue.length ? i : queue.length-1;
+      loadAndPlayIndex(nextIndex);
+    } else {
+      if(i < currentIndex) currentIndex--;
+      updateQueueUI();
+    }
+  }
+}
+
+/* ---------- Loading & Playback ---------- */
+function loadAndPlayIndex(index){
+  if(!player) {
+    console.warn('player not ready yet');
+    currentIndex = index;
+    return;
+  }
+  if(index < 0 || index >= queue.length) return;
+  const id = queue[index].id;
+  currentIndex = index;
+  songTitle.innerText = queue[index].title || ('Video ' + (index+1));
+  songSub.innerText = 'Sıradaki: ' + (index+1) + ' / ' + queue.length;
+  infoLine.innerText = 'Yükleniyor...';
+  // load only the video id (ignore playlist param etc) — this fixes "list/radio" problems
+  try {
+    // Use loadVideoById to ensure a single video starts (not playlist)
+    player.loadVideoById(id);
+    // attempt to play (some browsers require a user gesture — but we try)
+    setTimeout(()=>{ try{ player.playVideo(); }catch(e){} }, 500);
+  } catch(err) {
+    console.warn('loadVideoById failed, trying src fallback', err);
+    // as fallback, set iframe src (should be similar)
+    // note: player.setPlaybackQuality etc not necessary
+    const iframe = document.getElementById('player');
+    if(iframe) iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1&enablejsapi=1`;
+  }
+  // set thumbnail in disk (may be null for a moment)
+  renderDiskThumb();
+  updateQueueUI();
+}
+
+/* play from queue by index (user action) */
+function playFromQueue(i){
+  if(i < 0 || i >= queue.length) return;
+  loadAndPlayIndex(i);
+  // ensure play after small delay
+  setTimeout(()=>{ try{ player.playVideo(); }catch(e){} }, 400);
+}
+
+/* play next on end */
+function playNext(){
+  if(queue.length === 0) { stopAndClear(); return; }
+  const next = currentIndex + 1;
+  if(next < queue.length) {
+    loadAndPlayIndex(next);
+  } else {
+    // end reached: stop and optionally reset
+    isPlaying = false;
+    playBtn.innerText = '▶️ Oynat';
+    infoLine.innerText = 'Sıranın sonu';
+  }
+}
+
+/* stop & clear UI */
+function stopAndClear(){
+  try{ if(player && player.stopVideo) player.stopVideo(); } catch(e){}
+  songTitle.innerText = 'Sırada şarkı yok';
+  songSub.innerText = '';
+  disk.classList.remove('playing');
+  disk.classList.add('empty');
+  disk.innerHTML = '';
+  infoLine.innerText = '';
+  updateQueueUI();
+}
+
+/* show thumbnail in disk */
+function renderDiskThumb(){
+  disk.classList.remove('empty');
+  disk.innerHTML = '';
+  if(currentIndex >= 0 && queue[currentIndex] && queue[currentIndex].thumbnail) {
+    const img = document.createElement('img');
+    img.className = 'thumb';
+    img.src = queue[currentIndex].thumbnail;
+    img.alt = queue[currentIndex].title || 'kapak';
+    disk.appendChild(img);
+    // start disk spinning when playing
+    if(isPlaying) disk.style.animationPlayState = 'running';
+    else disk.style.animationPlayState = 'paused';
+  } else {
+    // if thumbnail unavailable, use empty look
+    disk.classList.add('empty');
+  }
+}
+
+/* ---------- Controls: play/pause/stop/seek/volume ---------- */
+function togglePlay(){
+  if(!player) return alert('Player henüz hazır değil, biraz bekle.');
+  if(isPlaying){
+    try{ player.pauseVideo(); } catch(e){}
+    isPlaying = false;
+    playBtn.innerText = '▶️ Oynat';
+    disk.style.animationPlayState = 'paused';
+  } else {
+    // if nothing loaded yet and queue has items, load first
+    if(currentIndex === -1 && queue.length > 0) {
+      loadAndPlayIndex(0);
+    }
+    try{ player.playVideo(); } catch(e){}
+    isPlaying = true;
+    playBtn.innerText = '⏸️ Duraklat';
+    disk.style.animationPlayState = 'running';
+  }
+}
+function stopPlayback(){
+  try{ player.stopVideo(); } catch(e){}
+  isPlaying = false;
+  playBtn.innerText = '▶️ Oynat';
+  disk.style.animationPlayState = 'paused';
+}
+function seekBy(offsetSec){
+  if(!player || !player.getCurrentTime) return;
+  try{
+    let t = player.getCurrentTime();
+    if(isNaN(t)) t = 0;
+    const newT = Math.max(0, t + offsetSec);
+    player.seekTo(newT, true);
+  } catch(e){}
+}
+function volumeUp(){
+  if(!player || !player.setVolume) return;
+  volume = Math.min(100, volume + 10);
+  try{ player.setVolume(volume); } catch(e){}
+  updateVolumeUI();
+}
+function volumeDown(){
+  if(!player || !player.setVolume) return;
+  volume = Math.max(0, volume - 10);
+  try{ player.setVolume(volume); } catch(e){}
+  updateVolumeUI();
+}
+function updateVolumeUI(){
+  volLabel.innerText = volume + '%';
+}
+
+/* ---------- Confirmed remove: user must accept ---------- */
+/* implemented above as confirmRemove() */
+
+/* ---------- Drag/Drop improvements: allow drop to end ---------- */
+queueList.addEventListener('dragover', (ev)=>{
+  ev.preventDefault();
+  // allow drop at end
+});
+queueList.addEventListener('drop', (ev)=>{
+  ev.preventDefault();
+  // if user drops outside an item, we handle earlier via per-item drop
+  const data = ev.dataTransfer.getData('text/plain');
+  if(!data) return;
+  const from = parseInt(data);
+  // determine drop target index by pointer
+  const children = Array.from(queueList.children);
+  let to = children.length - 1; // default end
+  for(let i=0;i<children.length;i++){
+    const rect = children[i].getBoundingClientRect();
+    if(ev.clientY < rect.top + rect.height/2){
+      to = i;
+      break;
+    }
+  }
+  if(!isNaN(from) && !isNaN(to)) reorderQueue(from,to);
+});
+
+/* ---------- UI Event bindings ---------- */
+addBtn.addEventListener('click', addToQueue);
+queueInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') addToQueue(); });
+
+playBtn.addEventListener('click', togglePlay);
+rewBtn.addEventListener('click', ()=> seekBy(-10));
+fwdBtn.addEventListener('click', ()=> seekBy(10));
+stopBtn.addEventListener('click', ()=> { stopPlayback(); /* keep queue intact */ });
+
+volUpBtn.addEventListener('click', volumeUp);
+volDownBtn.addEventListener('click', volumeDown);
+
+/* ---------- Accessibility: allow double-click on disk to toggle play ---------- */
+disk.addEventListener('dblclick', ()=> togglePlay());
+
+/* ---------- Startup: empty UI ---------- */
+stopAndClear();
+
+/* ---------- Extra robustness: try playing if user previously loaded a link directly ---------- */
+/* If the user pastes a full youtube URL into the page address bar with ?v=... we won't auto-play for them.
+   They must paste into the input and press Add (explicit user action) — per "ben demeden silme/değiştirme".
+*/
+
+/* =================================================================================
+   UZUN AÇIKLAMA — NEDEN ŞİMDİ ÇALIYOR:
+   - Önceki problem: playlist/radio linkleri (start_radio / list=RD...) IFrame API'ya farklı formatta geliyordu ve
+     player bazen "playlist mode" başlatıp oynatmıyordu. Biz bunu çözdük:
+       1) extractVideoId() her zaman 'v' parametresini öncelikli alır (watch?v=...),
+       2) eğer path-based id varsa (shorts / embed / youtu.be) alınır,
+       3) player.loadVideoById(id) ile *kesinlikle tek bir video* yüklenir (playlist paramleri yok sayılır).
+   - Ayrıca oEmbed (noembed.com) ile başlık+kapak çekiyoruz; CORS kapanırsa fallback thumbnail kullanılır.
+   - Silme işlemi 'confirm' ile yapılır — otomatik silme yok.
+   - Sırayı değiştirme: hem yukarı/aşağı butonları hem drag/drop ile reorder var.
+   - 10s ileri/geri butonları mevcut ve çalışır.
+   ================================================================================= */
+
+</script>
+</body>
+</html>
