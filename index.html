@@ -663,7 +663,7 @@ let isShuffle = false;
 let shuffleHistory = []; // Karıştırma geçmişini tutar (geri gitmek için)
 
 // Kullanıcı ve Ayarlar Durumu
-let userName = ""; // BURASI DÜZELTİLDİ: Varsayılan boş string
+let userName = ""; 
 let avatarUrl = "";
 let isAvatarEnabled = false;
 let isNotificationsEnabled = true;
@@ -779,6 +779,7 @@ function onPlayerStateChange(event) {
     const isPlaying = event.data === YT.PlayerState.PLAYING;
     const isBuffering = event.data === YT.PlayerState.BUFFERING;
     const isEnded = event.data === YT.PlayerState.ENDED;
+    const isCued = event.data === YT.PlayerState.CUED;
 
     if (isPlaying || isBuffering) {
         // Oynatılırken
@@ -787,6 +788,12 @@ function onPlayerStateChange(event) {
         playBtn.innerHTML = isPlaying ? i18n[currentLanguage].pause_btn_icon : i18n[currentLanguage].buffering_btn;
         playBtn.setAttribute('data-i18n', isPlaying ? 'pause_btn' : 'buffering_btn');
         updateProgress(); 
+        
+        // ÖNEMLİ: Gerçek bilgileri çek ve UI/Sırayı güncelle
+        if (isPlaying) {
+            updateSongInfo(queue[currentIndex]); 
+        }
+
     } else {
         // Duraklatılmış
         disk.style.animationPlayState = 'paused';
@@ -798,7 +805,7 @@ function onPlayerStateChange(event) {
         handleEnd();
     }
     
-    if (event.data === YT.PlayerState.CUED) {
+    if (isCued) {
         // video yuvasına yerleştirildiğinde oynat.
         player.playVideo(); 
     }
@@ -863,13 +870,15 @@ function playSong(index) {
     
     player.loadVideoById(song.id, 0); // Şarkıyı yükle ve oynat
     
-    // UI Güncelleme
+    // UI Güncelleme (Geçici bilgiyi göster)
     updateQueueUI(currentIndex);
-    updateSongInfo(song);
-
-    // Başlık/Favicon'u güncelle (ek özellik)
-    document.title = `▶ ${song.title} - ${song.artist}`;
-
+    
+    // Şarkı bilgisi player hazır olunca onStateChange'de güncellenecek, şimdilik placeholder gösterilir.
+    songTitle.innerText = song.title; 
+    songArtist.innerText = song.artist; 
+    thumbImage.src = song.thumbnail;
+    thumbImage.style.display = 'block';
+    
     saveState();
 }
 
@@ -975,21 +984,16 @@ function parseYoutubeUrl(url) {
     return null;
 }
 
+// GÜNCELLENDİ: Mock data kaldırıldı, placeholder ile başlatılıyor.
 function fetchVideoInfo(videoId) {
-    // YouTube API'ye gerek kalmadan daha hızlı bir yol için thumbnail ve başlık tahmini yap
+    // Başlangıçta geçici/placeholder verileri döndürülür. 
+    // Gerçek veriler video çalmaya başladığında (updateSongInfo içinde) player.getVideoData() ile alınacaktır.
     return new Promise(resolve => {
-        // Mock data, gerçek API entegrasyonu olmadan çalışmayı sürdürmek için
-        const mockTitles = ["SpoMini Demo Parça 1", "Mini Player Tanıtım Şarkısı", "Akustik Huzur", "Synthwave Yolculuğu", "Chill Lofi Beats"];
-        const mockArtists = ["Anonim", "Demo Artist", "SpoMini Team", "Mock Music"];
-        
-        const title = mockTitles[Math.floor(Math.random() * mockTitles.length)];
-        const artist = mockArtists[Math.floor(Math.random() * mockArtists.length)];
-        
-        resolve({
-            id: videoId,
-            title: title,
-            artist: artist,
-            thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
+        resolve({ 
+            id: videoId, 
+            title: "Video Başlığı Yükleniyor...", 
+            artist: "Kanal Adı Yükleniyor...",
+            thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` 
         });
     });
 }
@@ -1033,15 +1037,45 @@ function updateProgress() {
     }
 }
 
+// GÜNCELLENDİ: Gerçek başlık/sanatçı bilgisini player'dan çekme mantığı eklendi
 function updateSongInfo(song) {
-    songTitle.innerText = song.title;
-    songArtist.innerText = song.artist;
+    
+    let actualTitle = song.title;
+    let actualArtist = song.artist;
+
+    if (player && player.getVideoData) {
+        const videoData = player.getVideoData();
+        
+        // YouTube API'den gerçek veriyi al (video yüklendiğinde)
+        if (videoData && videoData.title && videoData.title !== '') {
+            actualTitle = videoData.title;
+            actualArtist = videoData.author; // Kanal Adı
+            
+            // Kuyruktaki öğeyi güncelle (Çalma listeleri için kritik!)
+            if (currentIndex !== -1 && queue[currentIndex]) {
+                queue[currentIndex].title = actualTitle;
+                queue[currentIndex].artist = actualArtist;
+                
+                // Güncellenmiş bilgiyi queue listesine yansıt
+                updateQueueUI(currentIndex); 
+                saveState(); // State'i kaydet ki, playlistler doğru adlarla kaydedilsin.
+            }
+        }
+    }
+
+    // UI'yı güncelle
+    songTitle.innerText = actualTitle;
+    songArtist.innerText = actualArtist;
     thumbImage.src = song.thumbnail;
     thumbImage.style.display = 'block';
+    disk.classList.remove('empty');
+    
+    // Başlık/Favicon'u güncelle
+    document.title = `▶ ${actualTitle} - ${actualArtist}`;
 }
 
 function resetPlayerUI() {
-    player.stopVideo();
+    if (player && player.stopVideo) player.stopVideo();
     playBtn.innerHTML = i18n[currentLanguage].play_btn_icon;
     playBtn.setAttribute('data-i18n', 'play_btn');
     songTitle.innerText = i18n[currentLanguage].initial_title;
@@ -1517,7 +1551,7 @@ function updateVolumeUI() {
     localStorage.setItem('playerVolume', volume);
 }
 
-// DÜZELTİLDİ: İsimsiz karşılama mesajı mantığı eklendi
+// GÜNCELLENDİ: İsimsiz karşılama mesajı mantığı
 function updateWelcomeMessage() {
     let messageTemplate = i18n[currentLanguage].welcome_message;
     const displayUserName = userName.trim(); 
@@ -1731,6 +1765,10 @@ function saveCurrentQueueAsPlaylist() {
     const playlists = getPlaylists();
     const newKey = `pl_${Date.now()}`;
     
+    // YENİ: Kaydetmeden önce güncel bilgileri al
+    // Not: updateSongInfo, player çalışırken queue'daki bilgiyi günceller. Oynamayan şarkılar, placeholder değerleri ile kaydedilir
+    // bu mantık, API key kullanmadan mümkün olan en iyi yaklaşım olarak korunur.
+    
     playlists[newKey] = {
         name: playlistName,
         items: [...queue] // Derin kopya al
@@ -1831,6 +1869,8 @@ function addCurrentSongToPlaylist() {
         return;
     }
 
+    // ÖNEMLİ: Eklenen şarkının bilgilerinin (başlık/sanatçı) güncel olduğundan emin ol
+    // updateSongInfo'dan sonra queue günceldir, bu yüzden doğrudan queue[currentIndex] kullanılır.
     playlist.items.push(currentSong);
     savePlaylists(playlists);
     
@@ -1901,7 +1941,6 @@ function loadState() {
         shuffleHistory = state.shuffleHistory || [];
         
         // Kullanıcı ve Ayarlar
-        // DÜZELTİLDİ: Varsayılan değer olarak boş string kullanıldı.
         userName = state.userName || ''; 
         avatarUrl = state.avatarUrl || '';
         isAvatarEnabled = state.isAvatarEnabled !== undefined ? state.isAvatarEnabled : false;
