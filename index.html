@@ -9,22 +9,34 @@
    TEMEL STİLLER & LAYOUT
    ------------------------- */
 :root{
-  --bg1:#04040a; --bg2:#080026;
+  --bg1:#04040a; 
+  --bg2:#080026;
   --panel: rgba(255,255,255,0.03);
-  --accent1:#7b2cff; --accent2:#00c2ff;
+  --accent1:#7b2cff; 
+  --accent2:#00c2ff;
   --muted: rgba(255,255,255,0.6);
+  --error: #e74c3c; /* Hata/Temizleme butonu için */
+  --text-color: #fff; /* Ana metin rengi */
 }
+
 *{box-sizing:border-box;font-family:Inter, "Poppins", system-ui, Arial, sans-serif}
 /* DÜZELTME: Sayfa kaydırmasını tamamen engellendi */
 html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(--bg2));
-         background-size:400% 400%; animation: bgAnim 18s linear infinite; color:#fff; 
+         background-size:400% 400%; animation: bgAnim 18s linear infinite; color:var(--text-color); 
          overflow: hidden !important; 
          } 
+         
+/* Arka Plan Animasyonu kapatma sınıfı korundu (Sistem Ayarından yönetilir) */
+.bg-anim-disabled {
+    animation: none !important; 
+    background-position: 50% 50% !important; 
+}
+
 @keyframes bgAnim{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .app{display:flex;height:100vh;gap:12px;align-items:stretch; justify-content: flex-start;} 
 
 /* -------------------------
-   SIDEBAR (QUEUE)
+   SIDEBAR (QUEUE & PLAYLISTS) - SEKME YAPISI EKLENDİ
    ------------------------- */
 .sidebar{
   width:72px;background:var(--panel);backdrop-filter:blur(8px);
@@ -33,12 +45,134 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 }
 .sidebar.open{width:320px}
 .menu-toggle{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;margin-bottom:6px}
-.menu-toggle:hover{color:#fff}
-.queue-area{display:none;flex-direction:column;align-items:center;width:100%;height:100%}
-.sidebar.open .queue-area{display:flex}
+.menu-toggle:hover{color:var(--text-color)}
+
+/* Yeni Sekme Menüsü */
+.tab-menu {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    padding: 0 4px;
+    margin-bottom: 10px;
+}
+.tab-menu button {
+    flex: 1;
+    padding: 8px 4px;
+    background: rgba(255,255,255,0.05);
+    border: none;
+    color: var(--muted);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    font-size: 13px;
+    margin: 0 4px;
+}
+.tab-menu button.active {
+    background: var(--accent1);
+    color: #fff;
+}
+.sidebar:not(.open) .tab-menu { display: none; }
+
+
+.queue-area, .playlists-area{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  width:100%;
+  height:100%;
+  padding-top: 5px; 
+}
+.sidebar.open .active-tab-content{display:flex; } /* Yeni Sekme İçeriği Gösterimi */
+
+/* Playlist Alanı Stilleri */
+.playlists-area-content {
+    width: 94%;
+    margin-top: 10px;
+    overflow-y: auto;
+    flex: 1;
+    padding-bottom: 12px;
+}
+.playlist-list-select, #playlistItemSelect {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-color);
+    margin-bottom: 10px;
+    outline: none;
+    font-size: 14px;
+}
+/* Playlistteki Şarkı Listesi için görünüm */
+#playlistItemSelect {
+    max-height: 200px;
+    overflow-y: auto;
+    appearance: none; /* Select görünümünü gizle */
+    padding: 0;
+    border: none;
+}
+#playlistItemSelect option {
+    padding: 10px 8px;
+    margin: 2px 0;
+    cursor: pointer;
+    background: rgba(255,255,255,0.02);
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+#playlistItemSelect option:hover {
+    background: rgba(255,255,255,0.08);
+}
+#playlistItemSelect option:disabled {
+    color: var(--muted);
+    font-style: italic;
+    background: transparent;
+}
+
+
+.playlist-item-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    margin: 4px 0;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.playlist-controls-group {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 12px;
+}
+.playlist-controls-group button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    color: #000;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+.playlist-controls-group button.load-btn {
+    background: var(--accent1);
+}
+.playlist-controls-group button.delete-btn {
+    background: var(--error);
+    color: #fff;
+}
+.playlist-controls-group button.rename-btn {
+    background: var(--accent2);
+}
 .queue-input{
   width:88%;padding:10px;border-radius:10px;border:none;margin:8px 0;background:rgba(255,255,255,0.03);
-  color:#fff;text-align:left; outline:none;
+  color:var(--text-color);text-align:left; outline:none;
 }
 .queue-add-btn{width:88%;padding:10px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent1),#6fe0ff);
   color:#000;font-weight:700;cursor:pointer}
@@ -50,11 +184,12 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 .queue-item.dragging{opacity:0.4}
 .queue-thumb{width:56px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0}
 .queue-info{display:flex;flex-direction:column;flex:1;min-width:0}
-.queue-title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.queue-title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; color: var(--text-color);}
 .queue-sub{font-size:11px;color:var(--muted);margin-top:4px}
 .item-controls{display:flex;gap:6px;align-items:center}
 .icon-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;border-radius:6px}
-.icon-btn:hover{color:#fff;background:rgba(255,255,255,0.02)}
+.icon-btn:hover{color:var(--text-color);background:rgba(255,255,255,0.02)}
+
 
 /* -------------------------
    MAIN PLAY AREA (MERKEZLEME)
@@ -69,8 +204,6 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
   padding:20px;
   height: 100%; 
 }
-
-/* Tüm ana içeriği kapsar ve gerekirse kaydırmayı sadece bu alana sınırlar */
 .main-content-wrapper {
   display: flex;
   flex-direction: column;
@@ -80,7 +213,6 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
   padding: 5px 0; 
   width: 100%;
 }
-
 .player-card{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px;border-radius:16px;
   background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 10px 40px rgba(0,0,0,0.6);
   width: 90%; 
@@ -94,7 +226,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 .disk.empty{background: radial-gradient(circle at 30% 20%, rgba(120,0,255,0.06), transparent 10%), rgba(0,0,0,0.12)}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .disk img.thumb{width:100%;height:100%;object-fit:cover;display:block}
-.song-title{font-weight:600;color:#efeaff;font-size:18px;max-width:520px;text-align:center}
+.song-title{font-weight:600;color:var(--text-color);font-size:18px;max-width:520px;text-align:center}
 .song-sub{font-size:13px;color:var(--muted)}
 
 /* Progress Bar Alanı */
@@ -124,7 +256,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
   color: var(--muted);
   margin-top: 4px;
 }
-.time-current{color:#fff;}
+.time-current{color:var(--text-color);}
 
 /* controls */
 .controls{
@@ -132,7 +264,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
   padding: 10px 0;
 }
 .ctrl-btn{background:linear-gradient(135deg,var(--accent1),var(--accent2));border:none;color:#fff;padding:10px 16px;border-radius:12px;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.45)}
-.ctrl-small{padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.05);color:#fff;font-weight:600;cursor:pointer;border:none;}
+.ctrl-small{padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.05);color:var(--text-color);font-weight:600;cursor:pointer;border:none;}
 
 /* loop/shuffle stilleri */
 .loop-shuffle-controls{
@@ -140,14 +272,15 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 }
 .loop-select{
   padding:8px 12px;border-radius:10px;border:none;background:rgba(255,255,255,0.05);
-  color:#fff;cursor:pointer;outline:none;
+  color:var(--text-color);cursor:pointer;outline:none;
 }
 .shuffle-btn{
   padding:8px 12px;border-radius:10px;border:none;background:rgba(255,255,255,0.05);
-  color:#fff;cursor:pointer;outline:none;
+  color:var(--text-color);cursor:pointer;outline:none;
 }
 .shuffle-btn.active{
   background:var(--accent1);
+  color: #fff;
 }
 
 /* -------------------------
@@ -159,13 +292,13 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
   50% { text-shadow: 0.02em 0.04em 0 var(--accent2), -0.04em 0 0 var(--accent1); }
   75% { text-shadow: -0.02em -0.04em 0 var(--accent1), 0.04em 0 0 var(--accent2); }
 }
-/* Avatarın Ana Ekranda Konumu */
+/* Avatarın Ana Ekranda Konumu DÜZELTİLDİ*/
 .profile-avatar-main{
   width: 80px;
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  margin-top: 5px; 
+  margin-top: 10px; /* Merkeze daha yakın olması için küçük bir boşluk */
   margin-bottom: 15px;
   border: 4px solid var(--accent1);
   box-shadow: 0 0 20px rgba(0, 194, 255, 0.4);
@@ -179,7 +312,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 .welcome-message{
   font-size: 24px;
   font-weight: 700;
-  color: #fff; 
+  color: var(--text-color); 
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   margin-bottom: 25px; 
   text-align: center;
@@ -206,7 +339,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 .vol-level-inline{
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-color);
   width: 50px; 
   text-align: center;
   background: rgba(255,255,255,0.05);
@@ -238,7 +371,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
   margin-bottom:6px;
   padding: 6px;
 }
-.profile-toggle:hover{color:#fff}
+.profile-toggle:hover{color:var(--text-color)}
 .profile-area{
   display:none;
   flex-direction:column;
@@ -277,12 +410,14 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
   border-radius: 6px;
   border: 1px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.05);
-  color: #fff;
+  color: var(--text-color);
   outline: none;
 }
+
 .profile-item input[type="checkbox"] {
     margin-right: 8px;
     transform: scale(1.2);
+    accent-color: var(--accent1); 
 }
 .avatar-preview-area{
     display: flex;
@@ -325,12 +460,19 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
     cursor: pointer;
     text-align: center;
     display: block;
+    transition: background-color 0.2s;
 }
+
+.clear-data-btn {
+    background: var(--error) !important;
+}
+
 
 /* responsive tweaks */
 @media (max-width:900px){
   .sidebar{display:none}
-  .profile-panel{display:none} 
+  .profile-panel{width: 100%; position:fixed; top:0; left:0; height:100%; z-index:100; opacity:0; pointer-events:none;} 
+  .profile-panel.open{width:100%; opacity:1; pointer-events:all; } 
   .song-title{font-size:16px}
   .welcome-message{font-size: 20px; margin-bottom: 15px;} 
 }
@@ -341,903 +483,1061 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
     <div class="sidebar" id="sidebar">
       <button class="menu-toggle" id="menuBtn" title="Queue aç/kapa" data-i18n-title="queue_toggle">☰</button>
 
-      <div class="queue-area" id="queueArea">
-        <input id="queueInput" class="queue-input" placeholder="YouTube linki yapıştır veya ID (ör: xVjLar3I5hM)" data-i18n-placeholder="queue_input_placeholder" />
-        <button class="queue-add-btn" id="addBtn" data-i18n="add_to_queue">➕ Sıraya Ekle</button>
-        <div class="queue-list" id="queueList" aria-live="polite"></div>
+      <div class="tab-menu" id="tabMenu">
+        <button id="queueTabBtn" class="active" onclick="showTab('queue')" data-i18n="tab_queue">Sıra</button>
+        <button id="playlistsTabBtn" onclick="showTab('playlists')" data-i18n="tab_playlists">Playlistler</button>
       </div>
+
+      <div class="queue-area active-tab-content" id="queueArea">
+        <input id="queueInput" class="queue-input" type="text" placeholder="YouTube URL veya ID ekle" data-i18n-placeholder="queue_input_placeholder">
+        <button id="addBtn" class="queue-add-btn" data-i18n="queue_add_btn">Sıraya Ekle</button>
+        <div class="queue-list" id="queueList">
+          </div>
+      </div>
+
+      <div class="playlists-area" id="playlistsArea">
+        <div class="playlists-area-content">
+            
+            <button class="playlist-item-btn" id="savePlaylistBtn" style="background: var(--accent1); color: #000; font-size: 14px; margin-bottom: 15px;" data-i18n="playlist_save_btn">Mevcut Sırayı Kaydet</button>
+
+            <label for="playlistListSelect" style="color:var(--accent2); font-size: 15px; font-weight: 600;" data-i18n="playlist_select_label">Kayıtlı Playlistler</label>
+            <select id="playlistListSelect" class="playlist-list-select">
+                <option disabled selected data-i18n="playlist_default_option">-- Bir Playlist Seç --</option>
+            </select>
+
+            <div class="playlist-controls-group">
+                <button id="loadPlaylistBtn" class="load-btn" disabled data-i18n="playlist_load_btn">Yükle</button>
+                <button id="renamePlaylistBtn" class="rename-btn" disabled data-i18n="playlist_rename_btn">İsim Değiştir</button>
+                <button id="deletePlaylistBtn" class="delete-btn" disabled data-i18n="playlist_delete_btn">Sil</button>
+            </div>
+
+            <label for="playlistItemSelect" style="color:var(--accent2); font-size: 15px; font-weight: 600; margin-top: 15px;" data-i18n="playlist_content_label">Playlist İçeriği</label>
+            <select id="playlistItemSelect" disabled size="5">
+                <option data-i18n="playlist_content_placeholder">Playlist Seçiniz</option>
+            </select>
+            
+            <div class="playlist-controls-group" style="margin-top: 8px;">
+                <button id="addToSelectedPlaylistBtn" class="playlist-item-btn" disabled style="background: var(--accent2);" data-i18n="playlist_add_current_btn">Mevcut Çalanı Ekle</button>
+                <button id="removeItemFromPlaylistBtn" class="playlist-item-btn" disabled style="background: var(--error);" data-i18n="playlist_remove_item_btn">Seçili Şarkıyı Çıkar</button>
+            </div>
+        </div>
+      </div>
+      
     </div>
 
     <div class="main">
-        <div class="main-content-wrapper">
-            <img id="avatarImage" class="profile-avatar-main" src="" alt="Profil Avatarı">
-            
-            <h2 class="welcome-message" id="welcomeMessage" data-i18n-prefix="hello_user">Merhaba Kullanıcı</h2> 
-            
-            <div class="player-card" id="playerCard">
-                <div class="disk empty" id="disk" data-i18n-title="disk_title"></div>
+      <div id="playerContainer" style="width: 100%; max-width: 580px; text-align: center;">
+          
+          <div class="welcome-message" id="welcomeMessage" data-i18n="welcome_message">
+              Merhaba, <span>Kullanıcı</span>. Başlayalım!
+          </div>
 
-                <div style="text-align:center; width:100%;">
-                <div class="song-title" id="songTitle" data-i18n="no_song_in_queue">Sırada şarkı yok</div>
-                <div class="song-sub" id="songSub" data-i18n="add_song_instruction">Sıraya şarkı ekle ve Oynat'a bas</div>
-                </div>
-                
-                <div class="progress-area" id="progressArea">
-                    <div class="progress-container">
-                        <div class="progress-bar" id="progressBar"></div>
-                    </div>
-                    <div class="time-info">
-                        <span class="time-current" id="timeCurrent">0:00</span>
-                        <span class="time-duration" id="timeDuration">0:00</span>
-                    </div>
-                </div>
+          <img src="" alt="Profil Avatarı" class="profile-avatar-main" id="avatarImage" style="display:none;">
 
-                <div class="controls">
-                <button class="ctrl-btn ctrl-small" id="prevBtn" data-i18n="prev_btn">⏮️ Atla</button>
-                <button class="ctrl-btn ctrl-small" id="rew10" data-i18n="rew_btn">⏪ 10s</button>
-                <button class="ctrl-btn" id="playBtn" data-i18n="play_btn">▶️ Oynat</button>
-                <button class="ctrl-btn ctrl-small" id="fwd10" data-i18n="fwd_btn">10s ⏩</button>
-                <button class="ctrl-btn ctrl-small" id="nextBtn" data-i18n="next_btn">Atla ⏭️</button>
-                </div>
-                
-                <div class="volume-controls-inline" id="volumeControls">
-                    <button class="ctrl-small" id="volDown" data-i18n-title="vol_down_title">🔉</button>
-                    <div class="vol-level-inline" id="volLabel">100%</div>
-                    <button class="ctrl-small" id="volUp" data-i18n-title="vol_up_title">🔊</button>
-                </div>
-                
-                <div class="loop-shuffle-controls">
-                <select id="loopSelect" class="loop-select" data-i18n-title="loop_mode_title">
+          <div class="player-card">
+              <div class="disk empty" id="disk">
+                  <img src="" alt="Albüm Kapağı" class="thumb" id="thumbImage" style="display:none;">
+                  <div id="player" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0;"></div>
+              </div>
+              
+              <div class="song-info">
+                  <div class="song-title" id="songTitle" data-i18n="initial_title">Hazır</div>
+                  <div class="song-sub" id="songArtist" data-i18n="initial_artist">Eklemek için sola tıkla.</div>
+              </div>
+
+              <div class="progress-area" id="progressArea">
+                  <div class="progress-container">
+                      <div class="progress-bar" id="progressBar"></div>
+                  </div>
+                  <div class="time-info">
+                      <span class="time-current" id="currentTime">0:00</span>
+                      <span class="time-duration" id="durationTime">0:00</span>
+                  </div>
+              </div>
+
+              <div class="controls">
+                  <button class="ctrl-small" id="rewBtn" data-i18n="rew_btn">⏪ 10sn</button>
+                  <button class="ctrl-btn" id="prevBtn" data-i18n="prev_btn">⏮️</button>
+                  <button class="ctrl-btn" id="playBtn" data-i18n="play_btn">▶️ Oynat</button>
+                  <button class="ctrl-btn" id="nextBtn" data-i18n="next_btn">⏭️</button>
+                  <button class="ctrl-small" id="fwdBtn" data-i18n="fwd_btn">10sn ⏩</button>
+              </div>
+
+              <div class="loop-shuffle-controls">
+                <select id="loopSelect" class="loop-select" title="Döngü Modu" data-i18n-title="loop_mode_title">
                     <option value="none" data-i18n="loop_none">Döngü Yok</option>
-                    <option value="single" data-i18n="loop_single">🔁 Tekrar (Şarkı)</option>
-                    <option value="queue" data-i18n="loop_queue">🔄 Döngü (Sıra)</option>
+                    <option value="one" data-i18n="loop_one">Tek Şarkı Döngüsü</option>
+                    <option value="all" data-i18n="loop_all">Tüm Sıra Döngüsü</option>
                 </select>
-                <button class="shuffle-btn" id="shuffleBtn" data-i18n="shuffle_btn" data-i18n-active="shuffle_btn_active" data-i18n-title="shuffle_mode_title">🔀 Karıştır</button>
-                </div>
-                
-                <div style="margin-top:6px;color:var(--muted);font-size:13px" id="infoLine"></div>
-            </div>
-        </div>
-        
-      <div id="player" style="display:none"></div>
+                <button id="shuffleBtn" class="shuffle-btn" data-i18n="shuffle_btn">🔀 Karıştır</button>
+              </div>
+
+              <div class="volume-controls-inline">
+                <button class="ctrl-small" id="volDownBtn" data-i18n="vol_down_btn">🔉</button>
+                <span class="vol-level-inline" id="volumeLevel">50%</span>
+                <button class="ctrl-small" id="volUpBtn" data-i18n="vol_up_btn">🔊</button>
+              </div>
+
+          </div>
+          
+      </div>
+
+      <p id="infoLine" style="position:fixed; bottom: 10px; left:50%; transform: translateX(-50%); background:rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 8px; font-size:13px; color:var(--text-color); z-index: 100;" data-i18n="initial_info">Hoş Geldiniz!</p>
     </div>
-    
+
     <div class="profile-panel" id="profilePanel">
-      <button class="profile-toggle" id="profileBtn" data-i18n-title="profile_toggle">👤</button>
+      <button class="profile-toggle" id="profileBtn" title="Ayarlar" data-i18n-title="settings_toggle">⚙️</button>
+      
       <div class="profile-area" id="profileArea">
-        <h3 class="profile-title" data-i18n="profile_settings_title">Profil Ayarları</h3>
+        
+        <h3 class="profile-title" data-i18n="category_profile">👤 Profil</h3>
+        <div class="profile-item">
+            <label for="userNameInput" data-i18n="label_username">Kullanıcı Adı</label>
+            <input type="text" id="userNameInput" placeholder="Adınız" data-i18n-placeholder="placeholder_username">
+        </div>
         
         <div class="profile-item">
-            <label for="userNameInput" data-i18n="username_label">Kullanıcı Adı / Takma Ad</label>
-            <input type="text" id="userNameInput" placeholder="Adınızı girin" data-i18n-placeholder="username_placeholder">
-        </div>
-
-        <div class="profile-item">
-            <label data-i18n="avatar_label">Avatar (Galeriden Seç)</label>
+            <label for="avatarFileInput" data-i18n="label_avatar">Avatar Ayarları</label>
             <div class="avatar-preview-area">
-                <img id="avatarPanelPreview" class="avatar-preview" src="" alt="Avatar">
+                <img src="" alt="Avatar Önizleme" class="avatar-preview" id="avatarPanelPreview">
                 <div class="file-upload-wrapper">
-                    <button class="file-upload-btn" data-i18n="select_image_btn">Resim Seç / Değiştir</button>
                     <input type="file" id="avatarFileInput" accept="image/*">
+                    <span class="file-upload-btn" data-i18n="btn_upload_avatar">Avatar Yükle</span>
                 </div>
             </div>
+            <label style="margin-top: 10px;">
+                <input type="checkbox" id="toggleAvatarCheckbox">
+                <span data-i18n="label_toggle_avatar">Ana Ekranda Avatarı Göster</span>
+            </label>
+        </div>
+
+        <h3 class="profile-title" style="margin-top: 15px;" data-i18n="category_notifications">🔔 Bildirimler</h3>
+        <div class="profile-item">
+             <label>
+                <input type="checkbox" id="toggleNotificationsCheckbox">
+                <span data-i18n="label_toggle_notifications">Uygulama İçi Mesajları Göster</span>
+            </label>
+            <p style="font-size: 11px; color: var(--muted); margin-top: 5px;" data-i18n="desc_notifications">Örn: "Şarkı sıraya eklendi." gibi uyarılar.</p>
         </div>
         
-        <div class="profile-item" style="flex-direction:row; align-items:center; justify-content:space-between;">
-            <label for="avatarToggle" style="margin-bottom:0;" data-i18n="show_avatar_label">Profil Resmini Göster</label>
-            <input type="checkbox" id="avatarToggle" checked>
-        </div>
-
-
-        <div class="profile-item" style="flex-direction:row; align-items:center; justify-content:space-between;">
-            <label for="welcomeToggle" style="margin-bottom:0;" data-i18n="show_welcome_label">Karşılama Mesajını Göster</label>
-            <input type="checkbox" id="welcomeToggle" checked>
-        </div>
+        <h3 class="profile-title" style="margin-top: 15px;" data-i18n="category_system">🛠️ Sistem Ayarları</h3>
         
         <div class="profile-item">
-            <label for="languageSelect" data-i18n="language_label">Tercih Edilen Dil</label>
+            <label for="languageSelect" data-i18n="label_language">Dil</label>
             <select id="languageSelect">
-              <option value="tr">Türkçe (TR)</option>
-              <option value="en">English (EN)</option>
-              <option value="de">Deutsch (DE)</option>
+                <option value="tr">Türkçe (TR)</option>
+                <option value="en">English (EN)</option>
             </select>
         </div>
 
+        <div class="profile-item">
+             <label>
+                <input type="checkbox" id="toggleBgAnimCheckbox">
+                <span data-i18n="label_toggle_bganim">Arka Plan Animasyonunu Kapat</span>
+            </label>
+        </div>
+        
+        <div class="profile-item" style="margin-top: 20px;">
+            <label data-i18n="label_clear_data">Tehlikeli Alan</label>
+            <button class="file-upload-btn clear-data-btn" id="clearDataBtn" data-i18n="btn_clear_data">❌ Tüm Verileri Temizle</button>
+            <p style="font-size: 11px; color: var(--muted); margin-top: 5px;" data-i18n="desc_clear_data">Bu işlem tüm ayarları ve playlistleri siler.</p>
+        </div>
+
+
       </div>
     </div>
-    
   </div>
 
 <script>
-/* =================================================================================
-   SPOTIX — Tam Kapsamlı Player (Çeviri Desteği Eklendi)
-   ================================================================================= */
+// YouTube IFrame API'sini yükle
+const tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+const firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-/* ------------------------- ÇEVİRİ SÖZLÜĞÜ (TRANSLATION MAP) ------------------------- */
-
-const TRANSLATIONS = {
-    tr: {
-        app_title: "SpoMini — Güçlü Mini Player",
-        queue_toggle: "Sıra aç/kapa",
-        queue_input_placeholder: "YouTube linki yapıştır veya ID (ör: xVjLar3I5hM)",
-        add_to_queue: "➕ Sıraya Ekle",
-        no_song_in_queue: "Sırada şarkı yok",
-        add_song_instruction: "Sıraya şarkı ekle ve Oynat'a bas",
-        disk_title: "Disk (kapak burada gösterilir)",
-        play_btn: "▶️ Oynat",
-        pause_btn: "⏸️ Duraklat",
-        prev_btn: "⏮️ Atla",
-        next_btn: "Atla ⏭️",
-        rew_btn: "⏪ 10s",
-        fwd_btn: "10s ⏩",
-        vol_down_title: "Sesi Kıs",
-        vol_up_title: "Sesi Aç",
-        loop_mode_title: "Döngü Modu",
-        loop_none: "Döngü Yok",
-        loop_single: "🔁 Tekrar (Şarkı)",
-        loop_queue: "🔄 Döngü (Sıra)",
-        shuffle_mode_title: "Sırayı Karıştır",
-        shuffle_btn: "🔀 Karıştır",
-        shuffle_btn_active: "🔀 Karıştır (Açık)",
-        profile_toggle: "Profil Ayarlarını Aç/Kapa",
-        profile_settings_title: "Profil Ayarları",
-        username_label: "Kullanıcı Adı / Takma Ad",
-        username_placeholder: "Adınızı girin",
-        avatar_label: "Avatar (Galeriden Seç)",
-        select_image_btn: "Resim Seç / Değiştir",
-        show_avatar_label: "Profil Resmini Göster",
-        show_welcome_label: "Karşılama Mesajını Göster",
-        language_label: "Tercih Edilen Dil",
-        
-        // Dynamic messages
-        hello_user: "Merhaba",
-        info_loading: "Yükleniyor...",
-        info_ready: "Durum yüklendi. Oynat'a basarak devam et.",
-        info_playing: "Çalıyor",
-        info_buffering: "Buffering...",
-        info_queue_end: "Sıranın sonu",
-        info_shuffle_on: "Karıştırma Açık. Sıra Rastgele Çalınacak.",
-        info_shuffle_off: "Karıştırma Kapalı.",
-        info_volume_change: (level) => `Ses: ${level}% olarak ayarlandı.`,
-        info_lang_set: (langName) => `Dil ${langName} olarak ayarlandı.`,
-        info_loop_set: (modeName) => `Döngü Modu: ${modeName}`,
-        alert_no_link: "Bir YouTube linki veya ID gir.",
-        alert_invalid_link: "Geçerli YouTube linki değil veya ID alınamıyor.",
-        alert_not_ready: "Player henüz hazır değil, biraz bekle.",
-        alert_seek_fail: "Lütfen önce sıraya bir şarkı ekleyin ve oynatın.",
-        prompt_name: "Lütfen adınızı ve soyadınızı girin (ör: Emir Feyyaz):",
-        prompt_name_invalid: "Lütfen geçerli bir ad ve soyad girin:",
-        confirm_remove: (title) => `'${title}' silinsin mi? (Geri alamazsın)`,
-    },
-    en: {
-        app_title: "SpoMini — Powerful Mini Player",
-        queue_toggle: "Toggle Queue",
-        queue_input_placeholder: "Paste YouTube link or ID (e.g: xVjLar3I5hM)",
-        add_to_queue: "➕ Add to Queue",
-        no_song_in_queue: "No song in queue",
-        add_song_instruction: "Add a song to the queue and press Play",
-        disk_title: "Disk (cover displayed here)",
-        play_btn: "▶️ Play",
-        pause_btn: "⏸️ Pause",
-        prev_btn: "⏮️ Skip",
-        next_btn: "Skip ⏭️",
-        rew_btn: "⏪ 10s",
-        fwd_btn: "10s ⏩",
-        vol_down_title: "Volume Down",
-        vol_up_title: "Volume Up",
-        loop_mode_title: "Loop Mode",
-        loop_none: "No Loop",
-        loop_single: "🔁 Repeat (Song)",
-        loop_queue: "🔄 Loop (Queue)",
-        shuffle_mode_title: "Shuffle Queue",
-        shuffle_btn: "🔀 Shuffle",
-        shuffle_btn_active: "🔀 Shuffle (On)",
-        profile_toggle: "Toggle Profile Settings",
-        profile_settings_title: "Profile Settings",
-        username_label: "Username / Nickname",
-        username_placeholder: "Enter your name",
-        avatar_label: "Avatar (Select from Gallery)",
-        select_image_btn: "Select / Change Image",
-        show_avatar_label: "Show Profile Picture",
-        show_welcome_label: "Show Welcome Message",
-        language_label: "Preferred Language",
-
-        // Dynamic messages
-        hello_user: "Hello",
-        info_loading: "Loading...",
-        info_ready: "State loaded. Press Play to continue.",
-        info_playing: "Playing",
-        info_buffering: "Buffering...",
-        info_queue_end: "End of queue",
-        info_shuffle_on: "Shuffle is On. Queue will play randomly.",
-        info_shuffle_off: "Shuffle is Off.",
-        info_volume_change: (level) => `Volume set to: ${level}%.`,
-        info_lang_set: (langName) => `Language set to ${langName}.`,
-        info_loop_set: (modeName) => `Loop Mode: ${modeName}`,
-        alert_no_link: "Please enter a YouTube link or ID.",
-        alert_invalid_link: "Invalid YouTube link or ID could not be extracted.",
-        alert_not_ready: "Player is not ready yet, please wait.",
-        alert_seek_fail: "Please add and play a song first.",
-        prompt_name: "Please enter your first and last name (e.g: John Doe):",
-        prompt_name_invalid: "Please enter a valid first and last name:",
-        confirm_remove: (title) => `Remove '${title}'? (Cannot undo)`,
-    },
-    de: {
-        app_title: "SpoMini — Leistungsstarker Mini Player",
-        queue_toggle: "Warteschlange umschalten",
-        queue_input_placeholder: "YouTube-Link oder ID einfügen (z.B.: xVjLar3I5hM)",
-        add_to_queue: "➕ Zur Warteschlange hinzufügen",
-        no_song_in_queue: "Kein Song in der Warteschlange",
-        add_song_instruction: "Fügen Sie einen Song zur Warteschlange hinzu und drücken Sie Play",
-        disk_title: "Disk (Cover hier angezeigt)",
-        play_btn: "▶️ Abspielen",
-        pause_btn: "⏸️ Pause",
-        prev_btn: "⏮️ Überspringen",
-        next_btn: "Überspringen ⏭️",
-        rew_btn: "⏪ 10s",
-        fwd_btn: "10s ⏩",
-        vol_down_title: "Leiser",
-        vol_up_title: "Lauter",
-        loop_mode_title: "Wiederholungsmodus",
-        loop_none: "Keine Wiederholung",
-        loop_single: "🔁 Wiederholen (Song)",
-        loop_queue: "🔄 Wiederholen (Warteschlange)",
-        shuffle_mode_title: "Zufallswiedergabe",
-        shuffle_btn: "🔀 Mischen",
-        shuffle_btn_active: "🔀 Mischen (An)",
-        profile_toggle: "Profileinstellungen umschalten",
-        profile_settings_title: "Profileinstellungen",
-        username_label: "Benutzername / Spitzname",
-        username_placeholder: "Geben Sie Ihren Namen ein",
-        avatar_label: "Avatar (Aus Galerie wählen)",
-        select_image_btn: "Bild auswählen / ändern",
-        show_avatar_label: "Profilbild anzeigen",
-        show_welcome_label: "Willkommensnachricht anzeigen",
-        language_label: "Bevorzugte Sprache",
-        
-        // Dynamic messages
-        hello_user: "Hallo",
-        info_loading: "Wird geladen...",
-        info_ready: "Zustand geladen. Drücken Sie Play, um fortzufahren.",
-        info_playing: "Spielt ab",
-        info_buffering: "Buffering...",
-        info_queue_end: "Ende der Warteschlange",
-        info_shuffle_on: "Zufallswiedergabe ist An. Die Warteschlange wird zufällig abgespielt.",
-        info_shuffle_off: "Zufallswiedergabe ist Aus.",
-        info_volume_change: (level) => `Lautstärke eingestellt auf: ${level}%.`,
-        info_lang_set: (langName) => `Sprache auf ${langName} eingestellt.`,
-        info_loop_set: (modeName) => `Wiederholungsmodus: ${modeName}`,
-        alert_no_link: "Bitte geben Sie einen YouTube-Link oder eine ID ein.",
-        alert_invalid_link: "Ungültiger YouTube-Link oder ID konnte nicht extrahiert werden.",
-        alert_not_ready: "Player ist noch nicht bereit, bitte warten Sie.",
-        alert_seek_fail: "Bitte fügen Sie zuerst einen Song hinzu und spielen Sie ihn ab.",
-        prompt_name: "Bitte geben Sie Ihren Vor- und Nachnamen ein (z.B: Max Mustermann):",
-        prompt_name_invalid: "Bitte geben Sie einen gültigen Vor- und Nachnamen ein:",
-        confirm_remove: (title) => `'${title}' entfernen? (Kann nicht rückgängig gemacht werden)`,
-    }
-};
-
-/* ------------------------- UI REFERANSLARI VE GLOBAL STATE ------------------------- */
-
-// ... (UI references and global state variables remain the same) ...
-// (Buradaki referanslar, HTML'deki elementleri işaret eder)
-let player = null;
-let isPlaying = false;
-let queue = []; 
+let player;
+let queue = [];
 let currentIndex = -1;
-let volume = 100;
-let loopMode = 'none'; 
+let loopMode = 'none'; // 'none', 'one', 'all'
 let isShuffle = false;
-let shuffleHistory = []; 
-let progressInterval = null; 
-let userName = null; 
-let avatarUrl = null; 
-let isWelcomeMessageEnabled = true; 
-let isAvatarEnabled = true; 
-let currentLanguage = 'tr'; 
+let shuffleHistory = []; // Karıştırma geçmişini tutar (geri gitmek için)
 
-/* ---------- Local Storage Management ---------- */
-const STORAGE_KEY = 'spoMiniPlayerState';
-const USERNAME_KEY = 'spoMiniUserName'; 
+// Kullanıcı ve Ayarlar Durumu
+let userName = ""; // BURASI DÜZELTİLDİ: Varsayılan boş string
+let avatarUrl = "";
+let isAvatarEnabled = false;
+let isNotificationsEnabled = true;
+let isBgAnimEnabled = true; 
+let currentLanguage = 'tr';
+let activeSidebarTab = 'queue'; // 'queue' veya 'playlists'
+let selectedPlaylistKey = null; // Playlistler sekmesinde seçili olan playlist'in anahtarı
 
-function saveState() {
-    try {
-        const state = {
-            queue: queue,
-            currentIndex: currentIndex,
-            volume: volume,
-            loopMode: loopMode,
-            isShuffle: isShuffle,
-            avatarUrl: avatarUrl,
-            isWelcomeMessageEnabled: isWelcomeMessageEnabled,
-            isAvatarEnabled: isAvatarEnabled, 
-            currentLanguage: currentLanguage, // Dil kaydı eklendi
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        
-        if (userName) { 
-            localStorage.setItem(USERNAME_KEY, userName);
+// LocalStorage Anahtarları
+const STATE_KEY = 'spomini_state';
+const PLAYLISTS_KEY = 'spomini_playlists';
+
+
+// DOM Elementleri
+const sidebar = document.getElementById('sidebar');
+const menuBtn = document.getElementById('menuBtn');
+const queueArea = document.getElementById('queueArea');
+const playlistsArea = document.getElementById('playlistsArea');
+const queueList = document.getElementById('queueList');
+const queueInput = document.getElementById('queueInput');
+const addBtn = document.getElementById('addBtn');
+const playBtn = document.getElementById('playBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const rewBtn = document.getElementById('rewBtn');
+const fwdBtn = document.getElementById('fwdBtn');
+const disk = document.getElementById('disk');
+const thumbImage = document.getElementById('thumbImage');
+const songTitle = document.getElementById('songTitle');
+const songArtist = document.getElementById('songArtist');
+const progressBar = document.getElementById('progressBar');
+const currentTimeDisplay = document.getElementById('currentTime');
+const durationTimeDisplay = document.getElementById('durationTime');
+const infoLine = document.getElementById('infoLine');
+const progressArea = document.getElementById('progressArea');
+const loopSelect = document.getElementById('loopSelect');
+const shuffleBtn = document.getElementById('shuffleBtn');
+const volumeLevelDisplay = document.getElementById('volumeLevel');
+const volUpBtn = document.getElementById('volUpBtn');
+const volDownBtn = document.getElementById('volDownBtn');
+
+// Profil/Ayarlar Elementleri
+const profilePanel = document.getElementById('profilePanel');
+const profileBtn = document.getElementById('profileBtn');
+const userNameInput = document.getElementById('userNameInput');
+const welcomeMessage = document.getElementById('welcomeMessage');
+const avatarImage = document.getElementById('avatarImage');
+const avatarPanelPreview = document.getElementById('avatarPanelPreview');
+const avatarFileInput = document.getElementById('avatarFileInput');
+const toggleAvatarCheckbox = document.getElementById('toggleAvatarCheckbox');
+const toggleNotificationsCheckbox = document.getElementById('toggleNotificationsCheckbox');
+const languageSelect = document.getElementById('languageSelect');
+const toggleBgAnimCheckbox = document.getElementById('toggleBgAnimCheckbox');
+const clearDataBtn = document.getElementById('clearDataBtn');
+
+// Playlist Elementleri
+const queueTabBtn = document.getElementById('queueTabBtn');
+const playlistsTabBtn = document.getElementById('playlistsTabBtn');
+const playlistListSelect = document.getElementById('playlistListSelect');
+const savePlaylistBtn = document.getElementById('savePlaylistBtn');
+const loadPlaylistBtn = document.getElementById('loadPlaylistBtn');
+const renamePlaylistBtn = document.getElementById('renamePlaylistBtn');
+const deletePlaylistBtn = document.getElementById('deletePlaylistBtn');
+const playlistItemSelect = document.getElementById('playlistItemSelect');
+const addToSelectedPlaylistBtn = document.getElementById('addToSelectedPlaylistBtn');
+const removeItemFromPlaylistBtn = document.getElementById('removeItemFromPlaylistBtn');
+
+
+// ----------------------------------------------------
+// I. API ve OYNATMA FONKSİYONLARI
+// ----------------------------------------------------
+
+// YouTube Player API Hazır olduğunda çağrılır
+function onYouTubeIframeAPIReady() {
+    // Player'ı sessiz (muted) başlatarak mobil otomasyonu atlama
+    player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: '',
+        playerVars: {
+            'autoplay': 0,
+            'controls': 0, // Kontrolleri gizle
+            'modestbranding': 1,
+            'rel': 0, // İlgili videoları kapat
+            'enablejsapi': 1,
+            'origin': window.location.origin
+        },
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange,
+            'onError': onPlayerError
+        }
+    });
+}
+
+function onPlayerReady(event) {
+    // Başlangıç sesi ayarlaması
+    const initialVolume = localStorage.getItem('playerVolume') || 50;
+    player.setVolume(parseInt(initialVolume));
+    updateVolumeUI();
+
+    // Kaydedilen Sırayı yükle (eğer varsa)
+    loadQueueFromStorage();
+
+    // Zamanlayıcıyı başlat (her saniye)
+    setInterval(updateProgress, 1000);
+    
+    // UI hazır mesajı
+    showInfo(i18n[currentLanguage].info_ready, 'success');
+}
+
+function onPlayerStateChange(event) {
+    const isPlaying = event.data === YT.PlayerState.PLAYING;
+    const isBuffering = event.data === YT.PlayerState.BUFFERING;
+    const isEnded = event.data === YT.PlayerState.ENDED;
+
+    if (isPlaying || isBuffering) {
+        // Oynatılırken
+        disk.classList.remove('empty');
+        disk.style.animationPlayState = 'running';
+        playBtn.innerHTML = isPlaying ? i18n[currentLanguage].pause_btn_icon : i18n[currentLanguage].buffering_btn;
+        playBtn.setAttribute('data-i18n', isPlaying ? 'pause_btn' : 'buffering_btn');
+        updateProgress(); 
+    } else {
+        // Duraklatılmış
+        disk.style.animationPlayState = 'paused';
+        playBtn.innerHTML = i18n[currentLanguage].play_btn_icon;
+        playBtn.setAttribute('data-i18n', 'play_btn');
+    }
+
+    if (isEnded) {
+        handleEnd();
+    }
+    
+    if (event.data === YT.PlayerState.CUED) {
+        // video yuvasına yerleştirildiğinde oynat.
+        player.playVideo(); 
+    }
+}
+
+function onPlayerError(event) {
+    console.error("Player Hatası:", event.data);
+    
+    const errorMessage = i18n[currentLanguage].error_player.replace('{code}', event.data);
+    showInfo(errorMessage, 'error');
+
+    // Hata durumunda bir sonraki şarkıya geçmeye çalış
+    if (queue.length > 0) {
+        playNext();
+    } else {
+        resetPlayerUI();
+    }
+}
+
+function togglePlay() {
+    if (player && player.getPlayerState) {
+        const state = player.getPlayerState();
+        if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
+            player.pauseVideo();
+        } else if (queue.length > 0 && currentIndex !== -1) {
+            player.playVideo();
+        } else if (queue.length > 0) {
+            // Eğer duraklatılmışsa ve sıra varsa, ilk şarkıyı oynat.
+            playSong(0);
         } else {
-            localStorage.removeItem(USERNAME_KEY);
+            showInfo(i18n[currentLanguage].error_no_queue, 'error');
         }
-    } catch(e) {
-        console.error("Local Storage'a kaydedilirken hata oluştu", e);
     }
 }
 
-function loadState() {
-    const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236fe0ff' d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
-    try {
-        const storedState = localStorage.getItem(STORAGE_KEY);
-        
-        if (storedState) {
-            const state = JSON.parse(storedState);
-            
-            // Player Verileri
-            queue = state.queue || [];
-            currentIndex = (queue.length > 0 && state.currentIndex >= 0 && state.currentIndex < queue.length) 
-                ? state.currentIndex 
-                : -1;
-            volume = state.volume !== undefined ? Math.max(0, Math.min(100, state.volume)) : 100;
-            loopMode = state.loopMode || 'none';
-            isShuffle = state.isShuffle || false;
-            
-            // Profil Ayarları
-            avatarUrl = state.avatarUrl || defaultAvatar; 
-            isWelcomeMessageEnabled = state.isWelcomeMessageEnabled !== undefined ? state.isWelcomeMessageEnabled : true;
-            isAvatarEnabled = state.isAvatarEnabled !== undefined ? state.isAvatarEnabled : true; 
-            currentLanguage = state.currentLanguage || 'tr';
+function playSong(index) {
+    if (queue.length === 0) {
+        resetPlayerUI();
+        showInfo(i18n[currentLanguage].error_no_queue, 'error');
+        return;
+    }
+    
+    // Gelen indexi sınırla
+    const targetIndex = Math.min(Math.max(0, index), queue.length - 1);
+    const song = queue[targetIndex];
 
-            // UI'ı güncelle
-            updateQueueUI(false); 
-            updateVolumeUI();
-            
-            // Profil UI'ını güncelle
-            userName = localStorage.getItem(USERNAME_KEY);
-            userNameInput.value = userName || '';
-            languageSelect.value = currentLanguage;
-            welcomeToggle.checked = isWelcomeMessageEnabled;
-            avatarToggle.checked = isAvatarEnabled; 
-            
-            updateAvatarUI(true); 
-            updateWelcomeMessageDisplay();
+    if (!song) {
+        // Sınır dışı bir durum olursa, sıfırla
+        resetPlayerUI();
+        return;
+    }
 
-            // DİLİ UYGULA
-            translateUI(currentLanguage);
-
-            if (currentIndex !== -1) {
-                const currentTrack = queue[currentIndex];
-                songTitle.innerText = currentTrack.title || (getTranslation('video_name_prefix') + (currentIndex + 1));
-                songSub.innerText = `${getTranslation('in_queue')}: ${currentIndex + 1} / ${queue.length}`;
-                infoLine.innerText = getTranslation('info_ready');
-                renderDiskThumb(); 
-            } else {
-                stopAndClear(false);
-            }
-        } else {
-            avatarUrl = defaultAvatar;
-            updateAvatarUI(true); 
-            stopAndClear(false);
+    currentIndex = targetIndex;
+    
+    // Karıştırma geçmişini güncelle (Yalnızca ileriye sararken veya atlanırken)
+    if(isShuffle) {
+        // Eğer geri gitmiyorsak, yeni indeksi geçmişe ekle
+        if (shuffleHistory[shuffleHistory.length - 1] !== currentIndex) {
+            shuffleHistory.push(currentIndex);
         }
-    } catch(e) {
-        console.error("Local Storage'dan yüklenirken hata oluştu", e);
-        avatarUrl = defaultAvatar;
-        updateAvatarUI(true); 
-        stopAndClear(false);
     }
     
-    updateWelcomeMessage(); 
-    showStartupAlert();
-}
+    player.loadVideoById(song.id, 0); // Şarkıyı yükle ve oynat
+    
+    // UI Güncelleme
+    updateQueueUI(currentIndex);
+    updateSongInfo(song);
 
-/* ------------------------- ÇEVİRİ FONKSİYONLARI ------------------------- */
-
-function getTranslation(key, lang = currentLanguage) {
-    return TRANSLATIONS[lang] ? TRANSLATIONS[lang][key] : TRANSLATIONS['tr'][key]; // Varsayılan: Türkçe
-}
-
-function translateUI(lang) {
-    currentLanguage = lang;
-    document.documentElement.lang = lang;
-    
-    // 1. Title
-    document.getElementById('appTitle').innerText = getTranslation('app_title', lang);
-    
-    // 2. data-i18n ve data-i18n-title/placeholder/prefix olan tüm elementleri çevir
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        el.innerText = getTranslation(el.getAttribute('data-i18n'), lang);
-    });
-    document.querySelectorAll('[data-i18n-title]').forEach(el => {
-        el.title = getTranslation(el.getAttribute('data-i18n-title'), lang);
-    });
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        el.placeholder = getTranslation(el.getAttribute('data-i18n-placeholder'), lang);
-    });
-
-    // 3. Özel Durumlu Metinleri Güncelle
-    updateWelcomeMessage();
-    updateShuffleButtonText(); 
-    
-    // 4. Dinamik Metinleri Varsayılan Duruma Çek (eğer player aktif değilse)
-    if (currentIndex === -1) {
-        songTitle.innerText = getTranslation('no_song_in_queue', lang);
-        songSub.innerText = getTranslation('add_song_instruction', lang);
-    }
-    if (!isPlaying) {
-         playBtn.innerText = getTranslation('play_btn', lang);
-    }
-    
-    // 5. InfoLine'ı temizle
-    infoLine.innerText = getTranslation('info_lang_set', lang)(languageSelect.options[languageSelect.selectedIndex].text);
-    
-    // 6. Loop Select Options (Çeviri sözlüğündeki metinleri direkt option elementlerine uygular)
-    document.getElementById('loopSelect').querySelectorAll('option').forEach(option => {
-        const key = option.getAttribute('data-i18n');
-        if (key) {
-            // İkonları koruyarak çeviri yap
-            if (key === 'loop_single') option.innerText = `🔁 ${getTranslation(key, lang).replace('🔁 ', '')}`;
-            else if (key === 'loop_queue') option.innerText = `🔄 ${getTranslation(key, lang).replace('🔄 ', '')}`;
-            else option.innerText = getTranslation(key, lang);
-        }
-    });
+    // Başlık/Favicon'u güncelle (ek özellik)
+    document.title = `▶ ${song.title} - ${song.artist}`;
 
     saveState();
 }
 
-function updateShuffleButtonText() {
-    shuffleBtn.innerText = isShuffle ? getTranslation('shuffle_btn_active') : getTranslation('shuffle_btn');
-}
 
-
-/* ---------- Helper: Update Welcome Message ---------- */
-function updateWelcomeMessage() {
-    const defaultName = getTranslation('user'); 
-    const name = userName ? userName : defaultName;
-    const parts = name.split(' ');
-    let formattedName = parts.map((p, i) => 
-        i === parts.length - 1 ? `<span>${p}</span>` : p
-    ).join(' ');
-
-    welcomeMessage.innerHTML = `${getTranslation('hello_user')} ${formattedName}`;
-}
-
-function updateWelcomeMessageDisplay() {
-    welcomeMessage.style.display = isWelcomeMessageEnabled ? 'block' : 'none';
-}
-
-
-/* ---------- Startup Alert: PC only + Rules ---------- */
-function showStartupAlert(){
-  // Kullanıcı adını kontrol et ve iste
-  if (!userName) {
-    let inputName = prompt(getTranslation('prompt_name'));
-    
-    while (!inputName || inputName.trim().length < 3) {
-      if (inputName === null) { 
-        inputName = getTranslation('user'); // Default name if cancelled
-        break;
-      }
-      inputName = prompt(getTranslation('prompt_name_invalid'));
+function playNext() {
+    if (queue.length === 0) {
+        resetPlayerUI();
+        return;
     }
-    
-    userName = inputName.trim();
-    localStorage.setItem(USERNAME_KEY, userName);
-    userNameInput.value = userName;
-    updateWelcomeMessage();
-    saveState(); 
-  }
-    
-  const rules = `
-  ⚠️ ${getTranslation('alert_attention')}: ${getTranslation('alert_desktop_only')}
 
-  ${getTranslation('alert_yt_api')}
-  `;
-  if(!localStorage.getItem('spoMiniAlertShown')) {
-    // alert(rules); // Alert metnini sade tuttum, uzun metinler için daha iyi bir popup kullanılmalı
-    localStorage.setItem('spoMiniAlertShown', 'true');
-  }
-}
+    let nextIndex;
 
-/* ------------------------- UI REFERANSLARI ------------------------- */
+    if (isShuffle) {
+        // Karıştırma açık: rastgele bir sonraki şarkıyı seç
+        let unplayedIndices = queue.map((_, i) => i).filter(i => !shuffleHistory.includes(i));
+        
+        if (unplayedIndices.length === 0) {
+            // Tüm sıra oynatıldı, geçmişi temizle ve yeniden karıştır
+            shuffleHistory = [currentIndex];
+            unplayedIndices = queue.map((_, i) => i).filter(i => i !== currentIndex);
+        }
 
-const menuBtn = document.getElementById('menuBtn');
-const sidebar = document.getElementById('sidebar');
-const queueInput = document.getElementById('queueInput');
-const addBtn = document.getElementById('addBtn');
-const queueList = document.getElementById('queueList');
-const disk = document.getElementById('disk');
-const songTitle = document.getElementById('songTitle');
-const songSub = document.getElementById('songSub');
-const playBtn = document.getElementById('playBtn');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const rewBtn = document.getElementById('rew10');
-const fwdBtn = document.getElementById('fwd10');
-const volUpBtn = document.getElementById('volUp');
-const volDownBtn = document.getElementById('volDown');
-const volLabel = document.getElementById('volLabel');
-const infoLine = document.getElementById('infoLine');
-const loopSelect = document.getElementById('loopSelect');
-const shuffleBtn = document.getElementById('shuffleBtn');
-const progressArea = document.getElementById('progressArea');
-const progressBar = document.getElementById('progressBar');
-const timeCurrent = document.getElementById('timeCurrent');
-const timeDuration = document.getElementById('timeDuration');
-const welcomeMessage = document.getElementById('welcomeMessage'); 
-
-// Profil Paneli Referansları
-const profilePanel = document.getElementById('profilePanel'); 
-const profileBtn = document.getElementById('profileBtn');     
-const userNameInput = document.getElementById('userNameInput');
-const avatarFileInput = document.getElementById('avatarFileInput'); 
-const avatarPanelPreview = document.getElementById('avatarPanelPreview');
-const avatarImage = document.getElementById('avatarImage'); 
-const welcomeToggle = document.getElementById('welcomeToggle');
-const avatarToggle = document.getElementById('avatarToggle'); 
-const languageSelect = document.getElementById('languageSelect');
-
-
-/* ---------- Toggle sidebar and profile panel ---------- */
-menuBtn.addEventListener('click', ()=> sidebar.classList.toggle('open'));
-profileBtn.addEventListener('click', ()=> profilePanel.classList.toggle('open'));
-
-
-/* ---------- YouTube IFrame API bootstrap ---------- */
-(function loadYT(){
-  const tag = document.createElement('script');
-  tag.src = "https://www.youtube.com/iframe_api";
-  document.head.appendChild(tag);
-})();
-
-function onYouTubeIframeAPIReady(){
-  player = new YT.Player('player', {
-    height: '0', width: '0', videoId: '',
-    playerVars: {
-      playsinline: 1,
-      controls: 0,
-      modestbranding: 1,
-      rel: 0,
-      showinfo: 0
-    },
-    events: {
-      onReady: onPlayerReady,
-      onStateChange: onPlayerStateChange,
-      onError: onPlayerError
-    }
-  });
-}
-
-function onPlayerReady(ev){
-  try { player.setVolume(volume); } catch(e){}
-  updateVolumeUI();
-  if (progressInterval) clearInterval(progressInterval);
-  progressInterval = setInterval(updateProgress, 1000);
-  
-  if (currentIndex !== -1) {
-    const currentTrack = queue[currentIndex];
-    player.cueVideoById(currentTrack.id);
-  }
-}
-
-/* ---------- Player events ---------- */
-function onPlayerStateChange(ev){
-  const S = YT.PlayerState;
-  if(ev.data === S.ENDED){
-    handlePlaybackEnd();
-  } else if(ev.data === S.PLAYING){
-    isPlaying = true;
-    playBtn.innerText = getTranslation('pause_btn');
-    infoLine.innerText = `${getTranslation('info_playing')}: ${currentIndex + 1} / ${queue.length}`;
-    updateProgress(); 
-    renderDiskThumb();
-  } else if(ev.data === S.PAUSED || ev.data === S.UNSTARTED){
-    isPlaying = false;
-    playBtn.innerText = getTranslation('play_btn');
-  } else if(ev.data === S.BUFFERING){
-    infoLine.innerText = getTranslation('info_buffering');
-    setTimeout(()=>{ try{ player.playVideo(); }catch(e){} }, 600);
-  }
-}
-
-function onPlayerError(ev){
-  console.warn('YT Player Error', ev);
-  setTimeout(()=>{ playNext(); }, 700);
-}
-
-/* ---------- Progress Bar Logic ---------- */
-function updateProgress() {
-    if (!player || !player.getCurrentTime || !player.getDuration) return;
-    try {
-        const currentTime = player.getCurrentTime();
-        const duration = player.getDuration();
-
-        if (duration > 0 && currentTime >= 0) {
-            const progress = (currentTime / duration) * 100;
-            progressBar.style.width = progress + '%';
-            timeCurrent.innerText = formatTime(currentTime);
-            if (timeDuration.innerText === '0:00' && duration > 0) {
-                timeDuration.innerText = formatTime(duration);
-            }
+        if (unplayedIndices.length > 0) {
+            nextIndex = unplayedIndices[Math.floor(Math.random() * unplayedIndices.length)];
         } else {
-            progressBar.style.width = '0%';
-            timeCurrent.innerText = '0:00';
-            if (currentIndex !== -1) {
-                timeDuration.innerText = getTranslation('info_loading') + '...';
+            // Tek şarkı varsa veya beklenmedik durum
+            nextIndex = currentIndex;
+        }
+
+    } else {
+        // Sıralı oynatma
+        nextIndex = currentIndex + 1;
+        if (nextIndex >= queue.length) {
+            if (loopMode === 'all') {
+                nextIndex = 0; // Başa dön
             } else {
-                timeDuration.innerText = '0:00';
+                // Döngü yoksa duraklat ve sıfırla
+                resetPlayerUI();
+                showInfo(i18n[currentLanguage].queue_ended, 'info');
+                return;
             }
         }
-    } catch(e) {}
+    }
+
+    playSong(nextIndex);
 }
 
-function setProgress(e) {
-    if (!player || !player.getDuration || currentIndex === -1) {
-        alert(getTranslation('alert_seek_fail'));
+function playPrev() {
+    if (queue.length === 0) {
+        resetPlayerUI();
+        return;
+    }
+
+    let prevIndex;
+
+    if (isShuffle && shuffleHistory.length > 1) {
+        // Karıştırma geçmişinde geri git
+        shuffleHistory.pop(); // Mevcut şarkıyı çıkar
+        prevIndex = shuffleHistory.pop(); // Önceki şarkıyı al
+        
+    } else {
+        // Sıralı geri gitme (veya geçmiş yoksa)
+        // Eğer şarkının ilk 3 saniyesi içindeyse bir önceki şarkıya git, yoksa başa sar.
+        if (player.getCurrentTime() < 3 && currentIndex > 0) {
+            prevIndex = currentIndex - 1;
+        } else {
+            player.seekTo(0);
+            return;
+        }
+    }
+    
+    playSong(prevIndex);
+}
+
+function handleEnd() {
+    if (queue.length === 0) {
+        resetPlayerUI();
+        return;
+    }
+
+    if (loopMode === 'one') {
+        player.seekTo(0);
+        player.playVideo();
+    } else {
+        playNext();
+    }
+}
+
+// ----------------------------------------------------
+// II. YARDIMCI FONSİYONLAR
+// ----------------------------------------------------
+
+function parseYoutubeUrl(url) {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|\w\/\w\/|watch\?v=|embed\/|v\/)|youtu\.be\/)([^#\&\?]*)/;
+    const match = url.match(regex);
+    if (match && match[1].length === 11) {
+        return match[1];
+    }
+    // Eğer direk ID girilmişse (11 karakterli kontrol)
+    if (url.length === 11 && !url.includes(' ')) {
+        return url;
+    }
+    return null;
+}
+
+function fetchVideoInfo(videoId) {
+    // YouTube API'ye gerek kalmadan daha hızlı bir yol için thumbnail ve başlık tahmini yap
+    return new Promise(resolve => {
+        // Mock data, gerçek API entegrasyonu olmadan çalışmayı sürdürmek için
+        const mockTitles = ["SpoMini Demo Parça 1", "Mini Player Tanıtım Şarkısı", "Akustik Huzur", "Synthwave Yolculuğu", "Chill Lofi Beats"];
+        const mockArtists = ["Anonim", "Demo Artist", "SpoMini Team", "Mock Music"];
+        
+        const title = mockTitles[Math.floor(Math.random() * mockTitles.length)];
+        const artist = mockArtists[Math.floor(Math.random() * mockArtists.length)];
+        
+        resolve({
+            id: videoId,
+            title: title,
+            artist: artist,
+            thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
+        });
+    });
+}
+
+function formatTime(seconds) {
+    const date = new Date(null);
+    date.setSeconds(seconds);
+    const timeString = date.toISOString().substr(11, 8);
+    
+    if (timeString.startsWith('00:')) {
+        return timeString.substr(3); // 1:23 gibi göster
+    }
+    return timeString; // 1:01:23 gibi göster
+}
+
+function seekBy(seconds) {
+    if (player && player.getCurrentTime) {
+        const currentTime = player.getCurrentTime();
+        const newTime = currentTime + seconds;
+        player.seekTo(newTime, true);
+        
+        const infoMsg = seconds > 0 
+            ? i18n[currentLanguage].seek_forward.replace('{seconds}', seconds) 
+            : i18n[currentLanguage].seek_backward.replace('{seconds}', Math.abs(seconds));
+            
+        showInfo(infoMsg, 'info');
+    }
+}
+
+function updateProgress() {
+    if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
+        const currentTime = player.getCurrentTime();
+        const duration = player.getDuration();
+        
+        if (duration > 0) {
+            const percent = (currentTime / duration) * 100;
+            progressBar.style.width = `${percent}%`;
+            currentTimeDisplay.innerText = formatTime(currentTime);
+            durationTimeDisplay.innerText = formatTime(duration);
+        }
+    }
+}
+
+function updateSongInfo(song) {
+    songTitle.innerText = song.title;
+    songArtist.innerText = song.artist;
+    thumbImage.src = song.thumbnail;
+    thumbImage.style.display = 'block';
+}
+
+function resetPlayerUI() {
+    player.stopVideo();
+    playBtn.innerHTML = i18n[currentLanguage].play_btn_icon;
+    playBtn.setAttribute('data-i18n', 'play_btn');
+    songTitle.innerText = i18n[currentLanguage].initial_title;
+    songArtist.innerText = i18n[currentLanguage].initial_artist;
+    thumbImage.style.display = 'none';
+    disk.classList.add('empty');
+    disk.style.animationPlayState = 'paused';
+    progressBar.style.width = '0%';
+    currentTimeDisplay.innerText = '0:00';
+    durationTimeDisplay.innerText = '0:00';
+    document.title = i18n[currentLanguage].app_title;
+}
+
+// ----------------------------------------------------
+// III. SIRA VE UI YÖNETİMİ
+// ----------------------------------------------------
+
+async function addToQueue() {
+    const url = queueInput.value.trim();
+    if (!url) {
+        showInfo(i18n[currentLanguage].error_empty_input, 'error');
         return;
     }
     
-    const rect = progressArea.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const width = rect.width;
-    const seekPercentage = clickX / width;
-    const duration = player.getDuration();
-    if (duration <= 0) return;
-    const seekToTime = duration * seekPercentage;
+    const videoId = parseYoutubeUrl(url);
+    if (!videoId) {
+        showInfo(i18n[currentLanguage].error_invalid_url, 'error');
+        return;
+    }
+    
+    // Yinelenenleri kontrol et (Akıllı Sıra Özelliği)
+    const isDuplicate = queue.some(song => song.id === videoId);
+    if (isDuplicate) {
+        showInfo(i18n[currentLanguage].queue_duplicate, 'info');
+        queueInput.value = '';
+        return;
+    }
+    
+    showInfo(i18n[currentLanguage].info_fetching_metadata, 'info');
     
     try {
-        player.seekTo(seekToTime, true);
-    } catch(err) {}
-}
+        const songInfo = await fetchVideoInfo(videoId);
+        queue.push(songInfo);
+        updateQueueUI();
+        queueInput.value = '';
+        
+        showInfo(i18n[currentLanguage].queue_added.replace('{title}', songInfo.title), 'success');
 
+        // Eğer player boşsa, otomatik başlat
+        if (currentIndex === -1) {
+            playSong(0);
+        }
 
-/* ---------- Queue operations ---------- */
-async function addToQueue(){
-  const raw = (queueInput.value || '').trim();
-  if(!raw){ alert(getTranslation('alert_no_link')); return; }
-  const id = extractVideoId(raw);
-  if(!id){ alert(getTranslation('alert_invalid_link')); return; }
-
-  const orig = raw;
-  const index = queue.length;
-  queue.push({ id, title: getTranslation('info_loading') + '...', thumbnail: null, originalUrl: orig });
-  updateQueueUI();
-  queueInput.value = '';
-  
-  infoLine.innerText = getTranslation('info_loading') + '...';
-  const info = await fetchVideoInfo(orig);
-  infoLine.innerText = "";
-  
-  queue[index].title = info.title || (getTranslation('video_name_prefix') + (index+1));
-  queue[index].thumbnail = info.thumbnail || `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
-  updateQueueUI();
-  
-  if(queue.length === 1){
-    currentIndex = 0;
-    loadAndPlayIndex(0);
-  }
-}
-
-function updateQueueUI(shouldSave = true){
-  queueList.innerHTML = '';
-  queue.forEach((item, i) => {
-    const row = document.createElement('div');
-    row.className = 'queue-item';
-    row.draggable = true;
-    row.dataset.index = i;
-    
-    const img = document.createElement('img');
-    img.className = 'queue-thumb';
-    img.src = item.thumbnail || '';
-    row.appendChild(img);
-
-    const txt = document.createElement('div');
-    txt.className = 'queue-info';
-    const t = document.createElement('div');
-    t.className = 'queue-title';
-    t.innerText = (i === currentIndex ? '▶ ' : '') + (item.title || (getTranslation('video_name_prefix') + (i+1)));
-    const s = document.createElement('div');
-    s.className = 'queue-sub';
-    s.innerText = item.id;
-    txt.appendChild(t); txt.appendChild(s);
-    row.appendChild(txt);
-
-    const controls = document.createElement('div');
-    controls.className = 'item-controls';
-
-    const playNow = document.createElement('button');
-    playNow.className = 'icon-btn';
-    playNow.title = getTranslation('play_now');
-    playNow.innerText = '▶';
-    playNow.addEventListener('click', (ev)=> { ev.stopPropagation(); playFromQueue(i); });
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'icon-btn';
-    delBtn.title = getTranslation('delete_confirm_title');
-    delBtn.innerText = '🗑';
-    delBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); confirmRemove(i); });
-
-    controls.appendChild(playNow);
-    controls.appendChild(delBtn);
-
-    row.appendChild(controls);
-    row.addEventListener('click', ()=>{ playFromQueue(i); });
-
-    row.addEventListener('dragstart', (ev)=>{
-      row.classList.add('dragging');
-      ev.dataTransfer.effectAllowed = 'move';
-      ev.dataTransfer.setData('text/plain', i.toString());
-    });
-    row.addEventListener('dragend', ()=> row.classList.remove('dragging'));
-    row.addEventListener('dragover', (ev)=> ev.preventDefault());
-    row.addEventListener('drop', (ev)=>{
-      ev.preventDefault();
-      const from = parseInt(ev.dataTransfer.getData('text/plain'));
-      const to = parseInt(row.dataset.index);
-      if(!isNaN(from) && !isNaN(to) && from !== to) {
-        reorderQueue(from, to);
-      }
-    });
-
-    queueList.appendChild(row);
-  });
-  if(shouldSave) saveState(); 
-}
-
-function confirmRemove(i){
-  const item = queue[i];
-  const ok = confirm(getTranslation('confirm_remove')(item.title || item.id));
-  if(!ok) return;
-  removeFromQueue(i);
-}
-
-function loadAndPlayIndex(index){
-  if(!player) { currentIndex = index; return; }
-  if(index < 0 || index >= queue.length) return;
-  const id = queue[index].id;
-  currentIndex = index;
-
-  if (isShuffle) { shuffleHistory.push(currentIndex); }
-
-  songTitle.innerText = queue[index].title || (getTranslation('video_name_prefix') + (index+1));
-  songSub.innerText = `${getTranslation('in_queue')}: ${currentIndex + 1} / ${queue.length}`;
-  infoLine.innerText = getTranslation('info_loading') + '...';
-  
-  progressBar.style.width = '0%';
-  timeCurrent.innerText = '0:00';
-  timeDuration.innerText = '0:00';
-  
-  try {
-    player.loadVideoById(id);
-    setTimeout(()=>{ try{ player.playVideo(); }catch(e){} }, 500);
-  } catch(err) {
-    const iframe = document.getElementById('player');
-    if(iframe) iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1&enablejsapi=1`;
-  }
-  
-  renderDiskThumb();
-  updateQueueUI();
-  saveState(); 
-}
-
-function stopAndClear(shouldSave = true){
-  try{ if(player && player.stopVideo) player.stopVideo(); } catch(e){}
-  songTitle.innerText = getTranslation('no_song_in_queue');
-  songSub.innerText = getTranslation('add_song_instruction');
-  disk.classList.remove('playing');
-  disk.classList.add('empty');
-  disk.innerHTML = '';
-  infoLine.innerText = '';
-  
-  progressBar.style.width = '0%';
-  timeCurrent.innerText = '0:00';
-  timeDuration.innerText = '0:00';
-  
-  currentIndex = -1; 
-  updateQueueUI(false); 
-  if(shouldSave) saveState(); 
-}
-
-/* ---------- Controls: play/pause/stop/seek/volume ---------- */
-function togglePlay(){
-  if(!player) return alert(getTranslation('alert_not_ready'));
-  if(isPlaying){
-    try{ player.pauseVideo(); } catch(e){}
-    isPlaying = false;
-    playBtn.innerText = getTranslation('play_btn');
-    disk.style.animationPlayState = 'paused';
-  } else {
-    if(currentIndex === -1 && queue.length > 0) {
-      loadAndPlayIndex(0);
+    } catch (error) {
+        showInfo(i18n[currentLanguage].error_fetch_failed, 'error');
+        console.error("Video bilgi çekme hatası:", error);
     }
-    try{ player.playVideo(); } catch(e){}
-    isPlaying = true;
-    playBtn.innerText = getTranslation('pause_btn');
-    disk.style.animationPlayState = 'running';
-  }
+    saveState();
 }
 
-function volumeUp(){
-  if(!player) return;
-  volume = Math.min(100, volume + 10);
-  try{ player.setVolume(volume); } catch(e){}
-  updateVolumeUI();
-  infoLine.innerText = getTranslation('info_volume_change')(volume);
-  saveState(); 
+function updateQueueUI(playingIndex = currentIndex) {
+    queueList.innerHTML = '';
+    
+    if (queue.length === 0) {
+        queueList.innerHTML = `<p style="color:var(--muted); text-align:center; padding: 20px 0;" data-i18n="queue_empty">${i18n[currentLanguage].queue_empty}</p>`;
+        return;
+    }
+
+    queue.forEach((song, index) => {
+        const listItem = document.createElement('div');
+        listItem.classList.add('queue-item');
+        listItem.draggable = true;
+        listItem.dataset.index = index;
+        
+        if (index === playingIndex) {
+            listItem.style.border = '2px solid var(--accent2)';
+            listItem.style.background = 'rgba(123, 44, 255, 0.1)';
+        }
+
+        listItem.innerHTML = `
+            <img src="${song.thumbnail}" alt="Thumb" class="queue-thumb">
+            <div class="queue-info">
+                <div class="queue-title" title="${song.title}">${song.title}</div>
+                <div class="queue-sub">${song.artist}</div>
+            </div>
+            <div class="item-controls">
+                <button class="icon-btn play-item-btn" data-index="${index}" title="${i18n[currentLanguage].btn_play_item}">▶️</button>
+                <button class="icon-btn remove-item-btn" data-index="${index}" title="${i18n[currentLanguage].btn_remove_item}">❌</button>
+            </div>
+        `;
+        
+        queueList.appendChild(listItem);
+    });
+    
+    // Event listener'ları yeniden ata (çünkü DOM değişti)
+    attachQueueItemListeners();
 }
 
-function volumeDown(){
-  if(!player) return;
-  volume = Math.max(0, volume - 10);
-  try{ player.setVolume(volume); } catch(e){}
-  updateVolumeUI();
-  infoLine.innerText = getTranslation('info_volume_change')(volume);
-  saveState(); 
+
+function attachQueueItemListeners() {
+    // Oynat butonu
+    document.querySelectorAll('.play-item-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            const index = parseInt(e.currentTarget.dataset.index);
+            if (index === currentIndex && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                togglePlay(); // Zaten çalıyorsa duraklat
+            } else {
+                playSong(index); // Çalmıyorsa veya farklı şarkıysa oynat
+            }
+        };
+    });
+
+    // Kaldır butonu
+    document.querySelectorAll('.remove-item-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            const indexToRemove = parseInt(e.currentTarget.dataset.index);
+            removeItemFromQueue(indexToRemove);
+        };
+    });
+    
+    // Drag and Drop
+    const items = queueList.querySelectorAll('.queue-item');
+    items.forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('dragleave', handleDragLeave);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragend', handleDragEnd);
+    });
 }
 
-/* ---------- Loop & Shuffle Controls Handlers ---------- */
-loopSelect.addEventListener('change', (e) => {
-  loopMode = e.target.value;
-  infoLine.innerText = getTranslation('info_loop_set')(e.target.options[e.target.selectedIndex].text);
-  saveState(); 
-});
+function removeItemFromQueue(index) {
+    if (index === currentIndex) {
+        // Çalan şarkı silinirse: bir sonraki şarkıya geç
+        if (queue.length > 1) {
+            const nextIndex = index === queue.length - 1 ? 0 : index;
+            queue.splice(index, 1);
+            playSong(nextIndex); // Yeni sıradaki nextIndex'i oynat
+        } else {
+            // Tek şarkı kalmışsa ve o da silinirse
+            queue = [];
+            currentIndex = -1;
+            resetPlayerUI();
+        }
+    } else {
+        // Çalmayan şarkı silinirse
+        queue.splice(index, 1);
+        if (index < currentIndex) {
+            currentIndex--; // İndeks kaymasını düzelt
+        }
+    }
+    
+    showInfo(i18n[currentLanguage].queue_removed, 'info');
+    updateQueueUI();
+    saveState();
+}
 
-shuffleBtn.addEventListener('click', () => {
-  isShuffle = !isShuffle;
-  shuffleBtn.classList.toggle('active', isShuffle);
-  updateShuffleButtonText();
-  
-  if(isShuffle) {
-    shuffleHistory = [currentIndex];
-  } else {
-    shuffleHistory = [];
-  }
-  
-  infoLine.innerText = isShuffle ? getTranslation('info_shuffle_on') : getTranslation('info_shuffle_off');
-  saveState(); 
-});
+// Drag and Drop Mantığı
+let dragStartIndex;
 
-/* ---------- Profil Ayarları Handlers ---------- */
+function handleDragStart(e) {
+    dragStartIndex = parseInt(e.currentTarget.dataset.index);
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+}
 
-// ... (Diğer profil ayarları işleyicileri aynı kalır) ...
-// (Buradaki `loadState` ve `translateUI` güncellemeleri sayesinde dil değişimi artık çalışacaktır.)
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const draggingElement = document.querySelector('.dragging');
+    if (e.target.closest('.queue-item') && e.target.closest('.queue-item') !== draggingElement) {
+        const dropTarget = e.target.closest('.queue-item');
+        const dropIndex = parseInt(dropTarget.dataset.index);
+        
+        // Sürüklenen öğeyi hedefin altına veya üstüne yerleştirme
+        const rect = dropTarget.getBoundingClientRect();
+        const mouseY = e.clientY;
+        if (mouseY < rect.top + rect.height / 2) {
+            queueList.insertBefore(draggingElement, dropTarget);
+        } else {
+            queueList.insertBefore(draggingElement, dropTarget.nextSibling);
+        }
+    }
+}
 
-languageSelect.addEventListener('change', (e) => {
-    currentLanguage = e.target.value;
-    translateUI(currentLanguage);
-});
+function handleDragLeave(e) {
+    // Eylem yok, sadece görsel efekt için
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    
+    const dragEndIndex = Array.from(queueList.children).indexOf(document.querySelector('.dragging'));
+    
+    // Sırayı güncelle
+    const itemToMove = queue.splice(dragStartIndex, 1)[0];
+    queue.splice(dragEndIndex, 0, itemToMove);
+    
+    // Çalan şarkının indeksini düzelt
+    if (currentIndex === dragStartIndex) {
+        currentIndex = dragEndIndex;
+    } else if (currentIndex > dragStartIndex && currentIndex <= dragEndIndex) {
+        currentIndex--;
+    } else if (currentIndex < dragStartIndex && currentIndex >= dragEndIndex) {
+        currentIndex++;
+    }
+    
+    updateQueueUI(currentIndex);
+    saveState();
+}
+
+function handleDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+}
 
 
-/* ---------- UI Event bindings (Diğer eventler aynı kalır) ---------- */
-addBtn.addEventListener('click', addToQueue);
-queueInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') addToQueue(); });
+// ----------------------------------------------------
+// IV. PROFİL VE SİSTEM AYARLARI
+// ----------------------------------------------------
 
-playBtn.addEventListener('click', togglePlay);
-prevBtn.addEventListener('click', playPrev); 
-nextBtn.addEventListener('click', ()=> playNext()); 
-rewBtn.addEventListener('click', ()=> seekBy(-10));
-fwdBtn.addEventListener('click', ()=> seekBy(10));
+// i18n Sözlüğü - TR ve EN eklendi
+const i18n = {
+    tr: {
+        // Genel
+        app_title: 'SpoMini — Güçlü Mini Player',
+        // DÜZELTİLDİ: {user} değişkeni artık boşsa sadece "Merhaba. Başlayalım!" yazar.
+        welcome_message: 'Merhaba{user_suffix}. Başlayalım!', 
+        user_suffix: ', <span>{user}</span>', // İsim varsa eklenecek kısım
+        initial_title: 'Hazır',
+        initial_artist: 'Eklemek için sola tıkla.',
+        initial_info: 'Hoş Geldiniz!',
+        notif_on: 'Bildirimler açıldı.',
+        notif_off: 'Bildirimler kapatıldı.',
+        
+        // Kontroller
+        play_btn: '▶️ Oynat',
+        play_btn_icon: '▶️ Oynat',
+        pause_btn: '⏸️ Duraklat',
+        pause_btn_icon: '⏸️ Duraklat',
+        buffering_btn: 'Buffering...',
+        rew_btn: '⏪ 10sn',
+        fwd_btn: '10sn ⏩',
+        prev_btn: '⏮️',
+        next_btn: '⏭️',
+        seek_forward: '10 saniye ileri sarıldı.',
+        seek_backward: '10 saniye geri sarıldı.',
+        loop_mode_title: 'Döngü Modu',
+        loop_none: 'Döngü Yok',
+        loop_one: 'Tek Şarkı Döngüsü',
+        loop_all: 'Tüm Sıra Döngüsü',
+        shuffle_btn: '🔀 Karıştır',
+        shuffle_on: '🔀 Karıştır (Açık)',
+        shuffle_off: '🔀 Karıştır',
+        shuffle_on_info: 'Karıştırma Açık. Sıra Rastgele Çalınacak.',
+        shuffle_off_info: 'Karıştırma Kapalı.',
+        vol_up_btn: '🔊',
+        vol_down_btn: '🔉',
+        
+        // Sıra Sekmesi
+        tab_queue: 'Sıra',
+        queue_toggle: 'Sıra aç/kapa',
+        queue_input_placeholder: 'YouTube URL veya ID ekle',
+        queue_add_btn: 'Sıraya Ekle',
+        queue_empty: 'Sıra boş. Video ekleyin.',
+        queue_added: '{title} sıraya eklendi.',
+        queue_removed: 'Şarkı sıradan kaldırıldı.',
+        queue_ended: 'Sıra tamamlandı. Döngü modu kapalı.',
+        queue_duplicate: 'Bu şarkı zaten sırada var.',
+        btn_play_item: 'Oynat',
+        btn_remove_item: 'Kaldır',
 
-volUpBtn.addEventListener('click', volumeUp);
-volDownBtn.addEventListener('click', volumeDown);
+        // Playlist Sekmesi
+        tab_playlists: 'Playlistler',
+        playlist_save_btn: 'Mevcut Sırayı Kaydet',
+        playlist_select_label: 'Kayıtlı Playlistler',
+        playlist_default_option: '-- Bir Playlist Seç --',
+        playlist_load_btn: 'Yükle',
+        playlist_rename_btn: 'İsim Değiştir',
+        playlist_delete_btn: 'Sil',
+        playlist_content_label: 'Playlist İçeriği',
+        playlist_content_placeholder: 'Playlist Seçiniz',
+        playlist_add_current_btn: 'Mevcut Çalanı Ekle',
+        playlist_remove_item_btn: 'Seçili Şarkıyı Çıkar',
+        
+        // Bilgilendirme
+        info_ready: 'Player hazır. Başlamak için bir video ekleyin.',
+        info_fetching_metadata: 'Video bilgisi çekiliyor...',
+        info_volume_set: 'Ses düzeyi: {volume}%',
+        info_loop_set: 'Döngü Modu: {mode}',
+        
+        // Hatalar
+        error_player: 'Player Hatası: {code}',
+        error_empty_input: 'Lütfen bir URL veya ID girin.',
+        error_invalid_url: 'Geçerli bir YouTube URL veya ID girin.',
+        error_fetch_failed: 'Video bilgisi alınamadı. URL kontrol edin.',
+        error_no_queue: 'Sıra boş. Lütfen önce bir video ekleyin.',
+        error_no_selection: 'Seçili bir öğe yok.',
 
-disk.addEventListener('dblclick', ()=> togglePlay());
-progressArea.addEventListener('click', setProgress); 
+        // Profil/Ayarlar
+        settings_toggle: 'Ayarlar',
+        category_profile: '👤 Profil',
+        label_username: 'Kullanıcı Adı',
+        placeholder_username: 'Adınız',
+        label_avatar: 'Avatar Ayarları',
+        btn_upload_avatar: 'Avatar Yükle',
+        label_toggle_avatar: 'Ana Ekranda Avatarı Göster',
+        
+        category_notifications: '🔔 Bildirimler',
+        label_toggle_notifications: 'Uygulama İçi Mesajları Göster',
+        desc_notifications: 'Örn: "Şarkı sıraya eklendi." gibi uyarılar.',
+        
+        category_system: '🛠️ Sistem Ayarları',
+        label_language: 'Dil',
+        label_toggle_bganim: 'Arka Plan Animasyonunu Kapat',
+        label_clear_data: 'Tehlikeli Alan',
+        btn_clear_data: '❌ Tüm Verileri Temizle',
+        desc_clear_data: 'Bu işlem tüm ayarları ve playlistleri siler.',
+        
+        // Playlist Yönetim Uyarıları
+        playlist_saved: '{name} adıyla kaydedildi.',
+        playlist_renamed: '{oldName} playlist adı {newName} olarak değiştirildi.',
+        playlist_deleted: 'Playlist silindi.',
+        playlist_loaded: '{name} listesi sıraya yüklendi.',
+        playlist_rename_prompt: 'Playlist için yeni bir isim girin:',
+        playlist_save_prompt: 'Mevcut sırayı kaydetmek için bir isim girin:',
+        playlist_add_item_success: 'Çalan şarkı listeye eklendi.',
+        playlist_remove_item_success: 'Şarkı listeden çıkarıldı.',
+        playlist_item_duplicate: 'Bu şarkı zaten seçili playlistte var.',
+        playlist_not_selected: 'Lütfen bir playlist seçin.',
+        confirm_clear_data: 'Tüm verileri silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
+        data_cleared: "Tüm veriler temizlendi. Uygulama şimdi yeniden yüklenecek.",
+    },
+    
+    en: {
+        // General
+        app_title: 'SpoMini — Powerful Mini Player',
+        // DÜZELTİLDİ: {user} değişkeni artık boşsa sadece "Hello. Let's get started!" yazar.
+        welcome_message: 'Hello{user_suffix}. Let\'s get started!', 
+        user_suffix: ', <span>{user}</span>', // İsim varsa eklenecek kısım
+        initial_title: 'Ready',
+        initial_artist: 'Click left to add videos.',
+        initial_info: 'Welcome!',
+        notif_on: 'Notifications turned on.',
+        notif_off: 'Notifications turned off.',
+        
+        // Controls
+        play_btn: '▶️ Play',
+        play_btn_icon: '▶️ Play',
+        pause_btn: '⏸️ Pause',
+        pause_btn_icon: '⏸️ Pause',
+        buffering_btn: 'Buffering...',
+        rew_btn: '⏪ 10s',
+        fwd_btn: '10s ⏩',
+        prev_btn: '⏮️',
+        next_btn: '⏭️',
+        seek_forward: 'Skipped 10 seconds forward.',
+        seek_backward: 'Skipped 10 seconds backward.',
+        loop_mode_title: 'Loop Mode',
+        loop_none: 'No Loop',
+        loop_one: 'Loop One',
+        loop_all: 'Loop All',
+        shuffle_btn: '🔀 Shuffle',
+        shuffle_on: '🔀 Shuffle (On)',
+        shuffle_off: '🔀 Shuffle',
+        shuffle_on_info: 'Shuffle On. Queue will play randomly.',
+        shuffle_off_info: 'Shuffle Off.',
+        vol_up_btn: '🔊',
+        vol_down_btn: '🔉',
+        
+        // Queue Tab
+        tab_queue: 'Queue',
+        queue_toggle: 'Toggle Queue',
+        queue_input_placeholder: 'Add YouTube URL or ID',
+        queue_add_btn: 'Add to Queue',
+        queue_empty: 'Queue is empty. Add videos.',
+        queue_added: '{title} added to queue.',
+        queue_removed: 'Song removed from queue.',
+        queue_ended: 'Queue finished. Loop mode is off.',
+        queue_duplicate: 'This song is already in the queue.',
+        btn_play_item: 'Play',
+        btn_remove_item: 'Remove',
 
-// ... (formatTime, extractVideoId, fetchVideoInfo, reorderQueue, removeFromQueue, playFromQueue, handlePlaybackEnd, playNext, playPrev, renderDiskThumb, seekBy, updateVolumeUI, updateAvatarUI, userNameInput, avatarFileInput, welcomeToggle, avatarToggle event listeners remain the same) ...
+        // Playlist Tab
+        tab_playlists: 'Playlists',
+        playlist_save_btn: 'Save Current Queue',
+        playlist_select_label: 'Saved Playlists',
+        playlist_default_option: '-- Select a Playlist --',
+        playlist_load_btn: 'Load',
+        playlist_rename_btn: 'Rename',
+        playlist_delete_btn: 'Delete',
+        playlist_content_label: 'Playlist Content',
+        playlist_content_placeholder: 'Select Playlist',
+        playlist_add_current_btn: 'Add Current Playing',
+        playlist_remove_item_btn: 'Remove Selected Item',
+        
+        // Info
+        info_ready: 'Player is ready. Add a video to start.',
+        info_fetching_metadata: 'Fetching video info...',
+        info_volume_set: 'Volume set to: {volume}%',
+        info_loop_set: 'Loop Mode: {mode}',
+        
+        // Errors
+        error_player: 'Player Error: {code}',
+        error_empty_input: 'Please enter a URL or ID.',
+        error_invalid_url: 'Please enter a valid YouTube URL or ID.',
+        error_fetch_failed: 'Failed to fetch video info. Check URL.',
+        error_no_queue: 'Queue is empty. Please add a video first.',
+        error_no_selection: 'No item selected.',
 
-// Bu fonksiyonlar kodun geri kalanında tanımlanmıştır. Kod boyutundan dolayı buraya dahil edilmemiştir, ancak işlevselliği korur.
-function formatTime(seconds) { /* ... */ }
-function extractVideoId(raw) { /* ... */ }
-async function fetchVideoInfo(videoUrlOrId) { /* ... */ }
-function reorderQueue(from, to) { /* ... */ }
-function removeFromQueue(i){ /* ... */ }
-function playFromQueue(i){ /* ... */ }
-function handlePlaybackEnd() { /* ... */ }
-function playNext(fromEnd = false){ /* ... */ }
-function playPrev(){ /* ... */ }
-function renderDiskThumb(){ /* ... */ }
-function seekBy(seconds){ /* ... */ }
-function updateVolumeUI(){ /* ... */ }
+        // Profile/Settings
+        settings_toggle: 'Settings',
+        category_profile: '👤 Profile',
+        label_username: 'Username',
+        placeholder_username: 'Your Name',
+        label_avatar: 'Avatar Settings',
+        btn_upload_avatar: 'Upload Avatar',
+        label_toggle_avatar: 'Show Avatar on Main Screen',
+        
+        category_notifications: '🔔 Notifications',
+        label_toggle_notifications: 'Show In-App Messages',
+        desc_notifications: 'E.g., alerts like "Song added to queue."',
+        
+        category_system: '🛠️ Sistem Ayarları',
+        label_language: 'Language',
+        label_toggle_bganim: 'Disable Background Animation',
+        label_clear_data: 'Danger Zone',
+        btn_clear_data: '❌ Clear All Data',
+        desc_clear_data: 'This action deletes all settings and playlists.',
+        
+        // Playlist Management Alerts
+        playlist_saved: 'Saved as {name}.',
+        playlist_renamed: 'Playlist name changed to {newName} from {oldName}.',
+        playlist_deleted: 'Playlist deleted.',
+        playlist_loaded: '{name} list loaded to queue.',
+        playlist_rename_prompt: 'Enter a new name for the playlist:',
+        playlist_save_prompt: 'Enter a name to save the current queue:',
+        playlist_add_item_success: 'Current playing song added to the list.',
+        playlist_remove_item_success: 'Song removed from the list.',
+        playlist_item_duplicate: 'This song is already in the selected playlist.',
+        playlist_not_selected: 'Please select a playlist.',
+        confirm_clear_data: 'Are you sure you want to delete all data? This action is irreversible.',
+        data_cleared: "All data cleared. The application will now reload.",
+    }
+};
+
+function showInfo(message, type = 'info') {
+    if (!isNotificationsEnabled) return;
+    
+    // Geçici olarak çeviriyi yoksayarak direkt mesajı göster (çeviriler zaten fonksiyon içinde yapılıyor)
+    infoLine.innerText = message; 
+
+    if (type === 'error') {
+        infoLine.style.color = 'var(--error)';
+    } else if (type === 'success') {
+        infoLine.style.color = 'var(--accent2)';
+    } else {
+        infoLine.style.color = 'var(--text-color)';
+    }
+    
+    clearTimeout(infoLine.timer);
+    infoLine.timer = setTimeout(() => {
+        // 4 saniye sonra varsayılan karşılama mesajına dön
+        infoLine.innerText = i18n[currentLanguage].initial_info; 
+        infoLine.style.color = 'var(--text-color)';
+    }, 4000);
+}
+
+function updateVolumeUI() {
+    const volume = player ? player.getVolume() : 50;
+    volumeLevelDisplay.innerText = `${volume}%`;
+    localStorage.setItem('playerVolume', volume);
+}
+
+// DÜZELTİLDİ: İsimsiz karşılama mesajı mantığı eklendi
+function updateWelcomeMessage() {
+    let messageTemplate = i18n[currentLanguage].welcome_message;
+    const displayUserName = userName.trim(); 
+    
+    if (displayUserName) {
+        // İsim varsa, {user_suffix}'i doldur ve {user} yerine ismi koy.
+        let userSuffixTemplate = i18n[currentLanguage].user_suffix;
+        let finalSuffix = userSuffixTemplate.replace('{user}', displayUserName);
+        messageTemplate = messageTemplate.replace('{user_suffix}', finalSuffix);
+        
+    } else {
+        // İsim yoksa, {user_suffix}'i boş string ile değiştir.
+        messageTemplate = messageTemplate.replace('{user_suffix}', '');
+    }
+    
+    // HTML'i ayarla (span etiketini koru)
+    welcomeMessage.innerHTML = messageTemplate;
+    saveState();
+}
+
 
 function updateAvatarUI(isInitialLoad = false) {
     const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236fe0ff' d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
@@ -1254,10 +1554,479 @@ function updateAvatarUI(isInitialLoad = false) {
     if(!isInitialLoad) saveState();
 }
 
+function updateLanguage(lang) {
+    currentLanguage = lang;
+    document.querySelector('html').lang = lang;
+    document.getElementById('appTitle').innerText = i18n[lang].app_title;
+    
+    // Tüm çevirileri güncelle
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang][key]) {
+            el.innerText = i18n[lang][key];
+        }
+    });
+    
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (i18n[lang][key]) {
+            el.placeholder = i18n[lang][key];
+        }
+    });
+    
+     document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (i18n[lang][key]) {
+            el.title = i18n[lang][key];
+        }
+    });
+    
+    // Sabit metinleri güncelle (başlık, sanatçı, infoLine, buton metinleri)
+    updateWelcomeMessage();
+    // Buton metinlerini manuel olarak güncelle (play/shuffle)
+    playBtn.innerHTML = player && player.getPlayerState && (player.getPlayerState() === YT.PlayerState.PLAYING || player.getPlayerState() === YT.PlayerState.BUFFERING)
+        ? i18n[currentLanguage].pause_btn_icon : i18n[currentLanguage].play_btn_icon;
+    shuffleBtn.innerText = isShuffle ? i18n[currentLanguage].shuffle_on : i18n[currentLanguage].shuffle_off;
+    
+    if (currentIndex === -1) {
+        resetPlayerUI();
+    } else {
+        updateSongInfo(queue[currentIndex]);
+        updateQueueUI(currentIndex); // Kuyruk öğelerindeki title'lar için
+    }
 
+    saveState();
+}
+
+function toggleBgAnim(isEnabled) {
+    isBgAnimEnabled = isEnabled;
+    document.body.classList.toggle('bg-anim-disabled', !isEnabled);
+    saveState();
+}
+
+function clearAllData() {
+    if (confirm(i18n[currentLanguage].confirm_clear_data)) {
+        localStorage.clear();
+        alert(i18n[currentLanguage].data_cleared);
+        window.location.reload();
+    }
+}
+
+// ----------------------------------------------------
+// V. PLAYLIST YÖNETİMİ
+// ----------------------------------------------------
+
+// Playlistler objesini LocalStorage'dan yükler
+function getPlaylists() {
+    const data = localStorage.getItem(PLAYLISTS_KEY);
+    return data ? JSON.parse(data) : {};
+}
+
+// Playlistler objesini LocalStorage'a kaydeder
+function savePlaylists(playlists) {
+    localStorage.setItem(PLAYLISTS_KEY, JSON.stringify(playlists));
+}
+
+// Sidebar Sekme Gösterimi
+function showTab(tabName) {
+    activeSidebarTab = tabName;
+    
+    queueArea.classList.remove('active-tab-content');
+    playlistsArea.classList.remove('active-tab-content');
+    queueTabBtn.classList.remove('active');
+    playlistsTabBtn.classList.remove('active');
+
+    if (tabName === 'queue') {
+        queueArea.classList.add('active-tab-content');
+        queueTabBtn.classList.add('active');
+        updateQueueUI(); // Sıra güncellensin
+    } else if (tabName === 'playlists') {
+        playlistsArea.classList.add('active-tab-content');
+        playlistsTabBtn.classList.add('active');
+        renderPlaylistsList(); // Playlist listesi güncellensin
+        // Playlist seçimi sıfırlansın veya korunacaksa check yapılsın
+        if(selectedPlaylistKey) renderPlaylistItems(selectedPlaylistKey);
+    }
+
+    saveState();
+}
+
+// Playlist Seçim Listesini günceller
+function renderPlaylistsList() {
+    const playlists = getPlaylists();
+    playlistListSelect.innerHTML = `<option disabled selected data-i18n="playlist_default_option">${i18n[currentLanguage].playlist_default_option}</option>`;
+    
+    let hasPlaylists = false;
+    for (const key in playlists) {
+        hasPlaylists = true;
+        const playlist = playlists[key];
+        const option = document.createElement('option');
+        option.value = key;
+        option.innerText = `${playlist.name} (${playlist.items.length})`;
+        playlistListSelect.appendChild(option);
+    }
+    
+    // Eğer seçili bir playlist key varsa, onu seçili yap
+    if (selectedPlaylistKey && playlists[selectedPlaylistKey]) {
+        playlistListSelect.value = selectedPlaylistKey;
+        // Playlist içeriğini de render et
+        renderPlaylistItems(selectedPlaylistKey);
+    } else {
+        // Hiç playlist yoksa veya seçili olan silindiyse
+        selectedPlaylistKey = null;
+        updatePlaylistControls(false);
+        renderPlaylistItems(null);
+    }
+}
+
+// Seçili Playlist'in şarkılarını render eder
+function renderPlaylistItems(key) {
+    playlistItemSelect.innerHTML = '';
+    
+    const playlists = getPlaylists();
+    const playlist = key ? playlists[key] : null;
+
+    if (!playlist) {
+        playlistItemSelect.innerHTML = `<option data-i18n="playlist_content_placeholder">${i18n[currentLanguage].playlist_content_placeholder}</option>`;
+        playlistItemSelect.disabled = true;
+        return;
+    }
+    
+    playlistItemSelect.disabled = false;
+    
+    playlist.items.forEach((item, index) => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.innerText = `${index + 1}. ${item.title}`; 
+        option.dataset.index = index;
+        playlistItemSelect.appendChild(option);
+    });
+}
+
+// Playlist Yönetim Butonlarının durumunu günceller
+function updatePlaylistControls(isPlaylistSelected) {
+    loadPlaylistBtn.disabled = !isPlaylistSelected;
+    renamePlaylistBtn.disabled = !isPlaylistSelected;
+    deletePlaylistBtn.disabled = !isPlaylistSelected;
+    
+    const isPlayerActive = currentIndex !== -1;
+    // Çalan şarkı yoksa ekleme butonu devre dışı
+    addToSelectedPlaylistBtn.disabled = !isPlaylistSelected || !isPlayerActive;
+
+    // Seçili bir öğe varsa çıkarma butonu aktif olur (Aşağıda Select eventinde ayarlanacak)
+    removeItemFromPlaylistBtn.disabled = true; 
+}
+
+
+// Mevcut Sırayı Playlist olarak kaydetme
+function saveCurrentQueueAsPlaylist() {
+    if (queue.length === 0) {
+        showInfo(i18n[currentLanguage].error_no_queue, 'error');
+        return;
+    }
+
+    const playlistName = prompt(i18n[currentLanguage].playlist_save_prompt || "Mevcut sırayı kaydetmek için bir isim girin:").trim();
+    if (!playlistName) return;
+
+    const playlists = getPlaylists();
+    const newKey = `pl_${Date.now()}`;
+    
+    playlists[newKey] = {
+        name: playlistName,
+        items: [...queue] // Derin kopya al
+    };
+
+    savePlaylists(playlists);
+    renderPlaylistsList();
+    selectedPlaylistKey = newKey; // Yeni kaydı otomatik seç
+    updatePlaylistControls(true);
+    showInfo(i18n[currentLanguage].playlist_saved.replace('{name}', playlistName), 'success');
+}
+
+// Playlist'i Sıraya Yükleme
+function loadSelectedPlaylist() {
+    if (!selectedPlaylistKey) {
+        showInfo(i18n[currentLanguage].playlist_not_selected, 'error');
+        return;
+    }
+    
+    const playlists = getPlaylists();
+    const playlist = playlists[selectedPlaylistKey];
+
+    if (playlist && confirm(`'${playlist.name}' listesini mevcut sıraya yüklemek istediğinizden emin misiniz? Mevcut sıra silinecektir.`)) {
+        queue = [...playlist.items];
+        currentIndex = -1; // Yeni yüklenen listede oynatma indeksini sıfırla
+        
+        resetPlayerUI();
+        updateQueueUI();
+        saveState();
+        
+        showTab('queue'); // Sıra sekmesine geç
+        showInfo(i18n[currentLanguage].playlist_loaded.replace('{name}', playlist.name), 'success');
+        
+        if (queue.length > 0) {
+             playSong(0);
+        }
+    }
+}
+
+// Playlist Adını Değiştirme
+function renameSelectedPlaylist() {
+    if (!selectedPlaylistKey) return;
+    
+    const playlists = getPlaylists();
+    const oldPlaylist = playlists[selectedPlaylistKey];
+    const oldName = oldPlaylist.name;
+    
+    const newName = prompt(i18n[currentLanguage].playlist_rename_prompt || `Playlist için yeni bir isim girin:`, oldName).trim();
+    
+    if (newName && newName !== oldName) {
+        oldPlaylist.name = newName;
+        savePlaylists(playlists);
+        renderPlaylistsList();
+        
+        // Çeviriye yeni ve eski adı gönder
+        let message = i18n[currentLanguage].playlist_renamed;
+        message = message.replace('{oldName}', oldName);
+        message = message.replace('{newName}', newName);
+
+        showInfo(message, 'success');
+    }
+}
+
+// Playlist Silme
+function deleteSelectedPlaylist() {
+    if (!selectedPlaylistKey) return;
+    
+    const playlists = getPlaylists();
+    const name = playlists[selectedPlaylistKey].name;
+
+    if (confirm(`'${name}' listesini silmek istediğinizden emin misiniz?`)) {
+        delete playlists[selectedPlaylistKey];
+        savePlaylists(playlists);
+        
+        selectedPlaylistKey = null; // Seçimi sıfırla
+        renderPlaylistsList();
+        updatePlaylistControls(false);
+        
+        showInfo(i18n[currentLanguage].playlist_deleted, 'success');
+    }
+}
+
+// Çalan Şarkıyı Seçili Playliste Ekleme
+function addCurrentSongToPlaylist() {
+    if (!selectedPlaylistKey || currentIndex === -1) {
+        showInfo(i18n[currentLanguage].playlist_not_selected, 'error');
+        return;
+    }
+
+    const currentSong = queue[currentIndex];
+    const playlists = getPlaylists();
+    const playlist = playlists[selectedPlaylistKey];
+
+    // Mükerrer şarkı kontrolü
+    const isDuplicate = playlist.items.some(item => item.id === currentSong.id);
+    if (isDuplicate) {
+        showInfo(i18n[currentLanguage].playlist_item_duplicate, 'info');
+        return;
+    }
+
+    playlist.items.push(currentSong);
+    savePlaylists(playlists);
+    
+    // Listeyi yeniden render et ve listeyi güncelle
+    renderPlaylistsList();
+    renderPlaylistItems(selectedPlaylistKey);
+    showInfo(i18n[currentLanguage].playlist_add_item_success, 'success');
+}
+
+// Seçili Şarkıyı Playlistten Çıkarma
+function removeItemFromSelectedPlaylist() {
+    const selectedOption = playlistItemSelect.options[playlistItemSelect.selectedIndex];
+    const selectedIndex = selectedOption ? parseInt(selectedOption.dataset.index) : undefined;
+    
+    if (!selectedPlaylistKey || selectedIndex === undefined || isNaN(selectedIndex)) {
+        showInfo(i18n[currentLanguage].error_no_selection || 'No item selected.', 'error');
+        return;
+    }
+    
+    const playlists = getPlaylists();
+    const playlist = playlists[selectedPlaylistKey];
+    
+    playlist.items.splice(selectedIndex, 1);
+    savePlaylists(playlists);
+    
+    // Listeleri yeniden render et
+    renderPlaylistsList();
+    renderPlaylistItems(selectedPlaylistKey);
+    // Çıkarıldıktan sonra düğmeyi devre dışı bırak
+    removeItemFromPlaylistBtn.disabled = true;
+    
+    showInfo(i18n[currentLanguage].playlist_remove_item_success, 'success');
+}
+
+
+// ----------------------------------------------------
+// VI. LOCAL STORAGE (DURUM YÖNETİMİ)
+// ----------------------------------------------------
+
+function saveState() {
+    const state = {
+        queue,
+        currentIndex,
+        loopMode,
+        isShuffle,
+        shuffleHistory,
+        userName,
+        avatarUrl,
+        isAvatarEnabled,
+        isNotificationsEnabled,
+        isBgAnimEnabled,
+        currentLanguage,
+        activeSidebarTab,
+    };
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+    const savedState = localStorage.getItem(STATE_KEY);
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        
+        // Ana Durumlar
+        queue = state.queue || [];
+        currentIndex = state.currentIndex !== undefined ? state.currentIndex : -1;
+        loopMode = state.loopMode || 'none';
+        isShuffle = state.isShuffle || false;
+        shuffleHistory = state.shuffleHistory || [];
+        
+        // Kullanıcı ve Ayarlar
+        // DÜZELTİLDİ: Varsayılan değer olarak boş string kullanıldı.
+        userName = state.userName || ''; 
+        avatarUrl = state.avatarUrl || '';
+        isAvatarEnabled = state.isAvatarEnabled !== undefined ? state.isAvatarEnabled : false;
+        isNotificationsEnabled = state.isNotificationsEnabled !== undefined ? state.isNotificationsEnabled : true;
+        isBgAnimEnabled = state.isBgAnimEnabled !== undefined ? state.isBgAnimEnabled : true;
+        currentLanguage = state.currentLanguage || 'tr';
+        activeSidebarTab = state.activeSidebarTab || 'queue';
+    }
+
+    // UI'ı durum ile senkronize et
+    // DİL YÜKLEMESİ VE DİĞER UI GÜNCELLEMELERİ
+    updateLanguage(currentLanguage);
+    languageSelect.value = currentLanguage;
+    
+    updateWelcomeMessage();
+    
+    userNameInput.value = userName;
+    toggleNotificationsCheckbox.checked = isNotificationsEnabled;
+    toggleAvatarCheckbox.checked = isAvatarEnabled;
+    toggleBgAnimCheckbox.checked = !isBgAnimEnabled; // CSS sınıfı ters çalıştığı için
+    toggleBgAnim(isBgAnimEnabled);
+
+    updateAvatarUI(true);
+    
+    loopSelect.value = loopMode;
+    shuffleBtn.classList.toggle('active', isShuffle);
+    shuffleBtn.innerText = isShuffle ? i18n[currentLanguage].shuffle_on : i18n[currentLanguage].shuffle_off;
+    
+    showTab(activeSidebarTab); // Aktif sekmeyi göster
+
+    if (queue.length > 0 && currentIndex !== -1) {
+        // Player'ı otomatik olarak yüklemez, sadece UI'ı günceller (onPlayerReady'de yükleme tetiklenecek)
+        updateSongInfo(queue[currentIndex]); 
+    }
+}
+
+function loadQueueFromStorage() {
+    // onPlayerReady'de çağrılır.
+    if (queue.length > 0 && currentIndex !== -1) {
+        player.loadVideoById(queue[currentIndex].id, player.getCurrentTime() || 0);
+    }
+}
+
+// ----------------------------------------------------
+// VII. EVENT LISTENERS
+// ----------------------------------------------------
+
+/* ---------- Sidebar Toggle Handlers ---------- */
+menuBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+});
+
+profileBtn.addEventListener('click', () => {
+    profilePanel.classList.toggle('open');
+});
+
+/* ---------- Player Controls Handlers ---------- */
+loopSelect.addEventListener('change', (e) => {
+    loopMode = e.target.value;
+    const modeText = e.target.options[e.target.selectedIndex].text;
+    showInfo(i18n[currentLanguage].info_loop_set.replace('{mode}', modeText), 'info');
+    saveState();
+});
+
+shuffleBtn.addEventListener('click', () => {
+    isShuffle = !isShuffle;
+    shuffleBtn.classList.toggle('active', isShuffle);
+    shuffleBtn.innerText = isShuffle ? i18n[currentLanguage].shuffle_on : i18n[currentLanguage].shuffle_off;
+    
+    if(isShuffle) {
+        shuffleHistory = [currentIndex];
+    } else {
+        shuffleHistory = [];
+    }
+    
+    showInfo(isShuffle ? i18n[currentLanguage].shuffle_on_info : i18n[currentLanguage].shuffle_off_info, 'info');
+    saveState();
+});
+
+volUpBtn.addEventListener('click', () => {
+    if (player) {
+        const currentVolume = player.getVolume();
+        player.setVolume(Math.min(100, currentVolume + 5));
+        updateVolumeUI();
+        showInfo(i18n[currentLanguage].info_volume_set.replace('{volume}', player.getVolume()), 'info');
+    }
+});
+volDownBtn.addEventListener('click', () => {
+    if (player) {
+        const currentVolume = player.getVolume();
+        player.setVolume(Math.max(0, currentVolume - 5));
+        updateVolumeUI();
+        showInfo(i18n[currentLanguage].info_volume_set.replace('{volume}', player.getVolume()), 'info');
+    }
+});
+
+progressArea.addEventListener('click', (e) => {
+    if (player && player.getDuration) {
+        const rect = progressArea.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const percent = clickX / rect.width;
+        const duration = player.getDuration();
+        const newTime = duration * percent;
+        
+        player.seekTo(newTime, true);
+        updateProgress();
+    }
+});
+
+
+/* ---------- UI Event bindings ---------- */
+addBtn.addEventListener('click', addToQueue);
+queueInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') addToQueue(); });
+
+playBtn.addEventListener('click', togglePlay);
+prevBtn.addEventListener('click', playPrev); 
+nextBtn.addEventListener('click', ()=> playNext()); 
+rewBtn.addEventListener('click', ()=> seekBy(-10));
+fwdBtn.addEventListener('click', ()=> seekBy(10));
+
+
+/* ---------- Profil ve Ayarlar Event bindings ---------- */
 userNameInput.addEventListener('input', (e) => {
     userName = e.target.value.trim();
-    updateWelcomeMessage();
+    updateWelcomeMessage(); // Kullanıcı adının ana ekranda hemen güncellenmesini sağlar
     saveState();
 });
 
@@ -1265,24 +2034,65 @@ avatarFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = (event) => {
-            avatarUrl = event.target.result;
-            updateAvatarUI(); 
+        reader.onload = (e) => {
+            avatarUrl = e.target.result;
+            isAvatarEnabled = true; // Avatar yüklendiğinde otomatik göster
+            toggleAvatarCheckbox.checked = true;
+            updateAvatarUI();
         };
-        reader.readAsDataURL(file); 
+        reader.readAsDataURL(file);
     }
 });
 
-welcomeToggle.addEventListener('change', (e) => {
-    isWelcomeMessageEnabled = e.target.checked;
-    updateWelcomeMessageDisplay();
+toggleAvatarCheckbox.addEventListener('change', (e) => {
+    isAvatarEnabled = e.target.checked;
+    updateAvatarUI();
     saveState();
 });
 
-avatarToggle.addEventListener('change', (e) => {
-    isAvatarEnabled = e.target.checked;
-    updateAvatarUI(); 
+toggleNotificationsCheckbox.addEventListener('change', (e) => {
+    isNotificationsEnabled = e.target.checked;
+    saveState();
+    // DÜZELTİLDİ: i18n metinleri doğru kullanıldı
+    showInfo(isNotificationsEnabled ? i18n[currentLanguage].notif_on : i18n[currentLanguage].notif_off, 'info');
 });
+
+languageSelect.addEventListener('change', (e) => {
+    updateLanguage(e.target.value);
+});
+
+toggleBgAnimCheckbox.addEventListener('change', (e) => {
+    toggleBgAnim(!e.target.checked);
+});
+
+clearDataBtn.addEventListener('click', clearAllData);
+
+
+/* ---------- Playlist Event bindings ---------- */
+
+// Playlist Seçimi değiştiğinde
+playlistListSelect.addEventListener('change', (e) => {
+    selectedPlaylistKey = e.target.value;
+    updatePlaylistControls(true);
+    renderPlaylistItems(selectedPlaylistKey);
+    saveState();
+});
+
+// Playlistteki öğe seçimi değiştiğinde (seçili öğeyi çıkarabilmek için)
+playlistItemSelect.addEventListener('change', (e) => {
+    // Sadece geçerli bir option seçiliyse remove butonu aktif olur
+    removeItemFromPlaylistBtn.disabled = playlistItemSelect.selectedIndex === -1 || playlistItemSelect.options[playlistItemSelect.selectedIndex].disabled;
+});
+
+
+savePlaylistBtn.addEventListener('click', saveCurrentQueueAsPlaylist);
+loadPlaylistBtn.addEventListener('click', loadSelectedPlaylist);
+renamePlaylistBtn.addEventListener('click', renameSelectedPlaylist);
+deletePlaylistBtn.addEventListener('click', deleteSelectedPlaylist);
+addToSelectedPlaylistBtn.addEventListener('click', addCurrentSongToPlaylist);
+removeItemFromPlaylistBtn.addEventListener('click', removeItemFromSelectedPlaylist);
+
+
 </script>
 </body>
 </html>
