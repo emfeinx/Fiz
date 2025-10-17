@@ -96,7 +96,6 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 </head>
 <body>
   <div class="app">
-    <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
       <button class="menu-toggle" id="menuBtn" title="Queue aç/kapa">☰</button>
 
@@ -107,7 +106,6 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
       </div>
     </div>
 
-    <!-- MAIN -->
     <div class="main">
       <div class="player-card" id="playerCard">
         <div class="disk empty" id="disk" title="Disk (kapak burada gösterilir)"></div>
@@ -121,16 +119,13 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
           <button class="ctrl-btn ctrl-small" id="rew10">⏪ 10s</button>
           <button class="ctrl-btn" id="playBtn">▶️ Oynat</button>
           <button class="ctrl-btn ctrl-small" id="fwd10">10s ⏩</button>
-          <button class="ctrl-btn ctrl-small" id="stopBtn" title="Durdur ve sırayı başa al">⏹︎ Durdur</button>
-        </div>
+          </div>
         <div style="margin-top:6px;color:var(--muted);font-size:13px" id="infoLine"></div>
       </div>
 
-      <!-- HIDDEN YT PLAYER (iframe API) -->
       <div id="player" style="display:none"></div>
     </div>
 
-    <!-- VOLUME controls -->
     <div class="vol-col" id="volCol">
       <button class="vol-btn" id="volUp">🔊</button>
       <button class="vol-btn" id="volDown">🔉</button>
@@ -163,7 +158,7 @@ function extractVideoId(raw) {
   raw = raw.trim();
 
   // If user pasted only an ID (11 chars)
-  if(/^[A-Za-z0-9_-]{11}$/.test(raw)) return raw;
+  if(/^[A-Za-z0-9_-]{11}$/u.test(raw)) return raw;
 
   // Try URL parsing
   try {
@@ -175,21 +170,21 @@ function extractVideoId(raw) {
     // If path contains 11-char id (shorts / embed / watch without v)
     const parts = u.pathname.split('/').filter(Boolean);
     for(let p of parts) {
-      if(/^[A-Za-z0-9_-]{11}$/.test(p)) return p;
+      if(/^[A-Za-z0-9_-]{11}$/u.test(p)) return p;
     }
     // youtu.be in hostname sometimes with path
     if(u.hostname && (u.hostname.includes('youtu.be') || u.hostname.includes('youtube.com'))) {
       // fallback regex on full url
-      const m = raw.match(/(?:v=|\/)([A-Za-z0-9_-]{11})/);
+      const m = raw.match(/(?:v=|\/)([A-Za-z0-9_-]{11})/u);
       return m ? m[1] : null;
     }
   } catch(e){
     // Not a full URL - try regex
-    const m = raw.match(/([A-Za-z0-9_-]{11})/);
+    const m = raw.match(/([A-Za-z0-9_-]{11})/u);
     return m ? m[1] : null;
   }
   // final regex fallback
-  const m = raw.match(/(?:v=|\/)([A-Za-z0-9_-]{11})/);
+  const m = raw.match(/(?:v=|\/)([A-Za-z0-9_-]{11})/u);
   return m ? m[1] : null;
 }
 
@@ -226,7 +221,7 @@ const songSub = document.getElementById('songSub');
 const playBtn = document.getElementById('playBtn');
 const rewBtn = document.getElementById('rew10');
 const fwdBtn = document.getElementById('fwd10');
-const stopBtn = document.getElementById('stopBtn');
+// const stopBtn = document.getElementById('stopBtn'); // Stop butonu silindi
 const volUpBtn = document.getElementById('volUp');
 const volDownBtn = document.getElementById('volDown');
 const volLabel = document.getElementById('volLabel');
@@ -561,6 +556,7 @@ function togglePlay(){
   }
 }
 function stopPlayback(){
+  // Stop butonu silindiği için bu fonksiyonu sadece gerekliyse çağıracağız (örn: sıranın boşalması).
   try{ player.stopVideo(); } catch(e){}
   isPlaying = false;
   playBtn.innerText = '▶️ Oynat';
@@ -625,7 +621,7 @@ queueInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') addToQueue()
 playBtn.addEventListener('click', togglePlay);
 rewBtn.addEventListener('click', ()=> seekBy(-10));
 fwdBtn.addEventListener('click', ()=> seekBy(10));
-stopBtn.addEventListener('click', ()=> { stopPlayback(); /* keep queue intact */ });
+// stopBtn.addEventListener('click', ()=> { stopPlayback(); /* keep queue intact */ }); // Silindi
 
 volUpBtn.addEventListener('click', volumeUp);
 volDownBtn.addEventListener('click', volumeDown);
@@ -652,9 +648,9 @@ stopAndClear();
    - Silme işlemi 'confirm' ile yapılır — otomatik silme yok.
    - Sırayı değiştirme: hem yukarı/aşağı butonları hem drag/drop ile reorder var.
    - 10s ileri/geri butonları mevcut ve çalışır.
+   - Durdur butonu kaldırıldı.
    ================================================================================= */
 
 </script>
 </body>
 </html>
-
