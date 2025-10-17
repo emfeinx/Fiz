@@ -77,9 +77,29 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 .song-sub{font-size:13px;color:var(--muted)}
 
 /* controls */
-.controls{display:flex;gap:12px;align-items:center}
+.controls{
+  display:flex;gap:12px;align-items:center;
+  /* Next/Prev butonları için ek kontrol alanı */
+  padding: 10px 0;
+}
 .ctrl-btn{background:linear-gradient(135deg,var(--accent1),var(--accent2));border:none;color:#fff;padding:10px 16px;border-radius:12px;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.45)}
 .ctrl-small{padding:8px 12px;border-radius:10px}
+
+/* yeni eklenen loop/shuffle stilleri */
+.loop-shuffle-controls{
+  display:flex;gap:12px;align-items:center;margin-top:10px;
+}
+.loop-select{
+  padding:8px 12px;border-radius:10px;border:none;background:rgba(255,255,255,0.05);
+  color:#fff;cursor:pointer;outline:none;
+}
+.shuffle-btn{
+  padding:8px 12px;border-radius:10px;border:none;background:rgba(255,255,255,0.05);
+  color:#fff;cursor:pointer;outline:none;
+}
+.shuffle-btn.active{
+  background:var(--accent1);
+}
 
 /* volume column on right */
 .vol-col{position:absolute;right:18px;bottom:18%;display:flex;flex-direction:column;gap:12px;align-items:center}
@@ -116,10 +136,22 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
         </div>
 
         <div class="controls">
+          <button class="ctrl-btn ctrl-small" id="prevBtn">⏮️ Atla</button>
           <button class="ctrl-btn ctrl-small" id="rew10">⏪ 10s</button>
           <button class="ctrl-btn" id="playBtn">▶️ Oynat</button>
           <button class="ctrl-btn ctrl-small" id="fwd10">10s ⏩</button>
-          </div>
+          <button class="ctrl-btn ctrl-small" id="nextBtn">Atla ⏭️</button>
+        </div>
+        
+        <div class="loop-shuffle-controls">
+          <select id="loopSelect" class="loop-select" title="Döngü Modu">
+            <option value="none">Döngü Yok</option>
+            <option value="single">🔁 Tekrar (Şarkı)</option>
+            <option value="queue">🔄 Döngü (Sıra)</option>
+          </select>
+          <button class="shuffle-btn" id="shuffleBtn" title="Sırayı Karıştır">🔀 Karıştır</button>
+        </div>
+        
         <div style="margin-top:6px;color:var(--muted);font-size:13px" id="infoLine"></div>
       </div>
 
@@ -143,6 +175,9 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
    - YouTube IFrame API kullanılarak arka planda çalma, setVolume ve seek
    - Silme işlemleri onaylı — hiçbir şeyi senden habersiz silmez
    - 10s ileri/geri, play/pause/stop, ses kontrolleri
+   - YENİ: Önceki/Sonraki Atla Butonları
+   - YENİ: Döngü (Tek Şarkı/Sıra) ve Karıştırma (Shuffle) Modları
+   - YENİ: Başlangıç Uyarısı (Sadece PC/Masaüstü Kullanımı)
    ================================================================================= */
 
 /* ---------- Global state ---------- */
@@ -151,6 +186,9 @@ let isPlaying = false;
 let queue = []; // { id, title, thumbnail, originalUrl }
 let currentIndex = -1;
 let volume = 100;
+let loopMode = 'none'; // 'none', 'single', 'queue'
+let isShuffle = false;
+let shuffleHistory = []; // Rastgele çalınan indexleri tutar
 
 /* ---------- Helper: robust parse for many YouTube URL variants ---------- */
 function extractVideoId(raw) {
@@ -219,13 +257,33 @@ const disk = document.getElementById('disk');
 const songTitle = document.getElementById('songTitle');
 const songSub = document.getElementById('songSub');
 const playBtn = document.getElementById('playBtn');
+const prevBtn = document.getElementById('prevBtn'); // YENİ
+const nextBtn = document.getElementById('nextBtn'); // YENİ
 const rewBtn = document.getElementById('rew10');
 const fwdBtn = document.getElementById('fwd10');
-// const stopBtn = document.getElementById('stopBtn'); // Stop butonu silindi
 const volUpBtn = document.getElementById('volUp');
 const volDownBtn = document.getElementById('volDown');
 const volLabel = document.getElementById('volLabel');
 const infoLine = document.getElementById('infoLine');
+const loopSelect = document.getElementById('loopSelect'); // YENİ
+const shuffleBtn = document.getElementById('shuffleBtn'); // YENİ
+
+/* ---------- Startup Alert: PC only + Rules ---------- */
+function showStartupAlert(){
+  const rules = `
+  ⚠️ DİKKAT: YALNIZCA BİLGİSAYAR (Masaüstü) KULLANIMI İÇİN TASARLANMIŞTIR.
+
+  Mobil cihazlarda YouTube IFrame API'nin kısıtlamaları nedeniyle sağlıklı çalışmayabilir.
+
+  ÖNEMLİ KURALLAR ve ÖZELLİKLER:
+  1. Oynatma: Sıraya ekledikten sonra ▶️ Oynat butonuna basmak gerekir.
+  2. Sıra Yönetimi: Listeden şarkı silme/taşıma (Drag & Drop dahil) onaylıdır.
+  3. Tekrar Modları: Tekrar (şarkıyı), Döngü (sırayı) ve Karıştır (rastgele) modlarını kullanabilirsiniz.
+  4. Hızlı Erişim: Disk'e çift tıklayarak oynat/duraklat yapabilirsiniz.
+  `;
+  alert(rules);
+}
+showStartupAlert(); // Sayfa yüklendiğinde uyar
 
 /* ---------- Toggle sidebar ---------- */
 menuBtn.addEventListener('click', ()=> sidebar.classList.toggle('open'));
@@ -264,8 +322,8 @@ function onPlayerReady(ev){
 function onPlayerStateChange(ev){
   const S = YT.PlayerState;
   if(ev.data === S.ENDED){
-    // otomatik olarak sıradaki çalsın
-    playNext();
+    // otomatik olarak sıradaki çalsın (Döngü ve Karıştırma mantığı burada)
+    handlePlaybackEnd();
   } else if(ev.data === S.PLAYING){
     isPlaying = true;
     playBtn.innerText = '⏸️ Duraklat';
@@ -323,6 +381,7 @@ function updateQueueUI(){
     row.draggable = true;
     row.dataset.index = i;
 
+    // ... (UI elementleri burası değişmedi) ...
     // thumb
     const img = document.createElement('img');
     img.className = 'queue-thumb';
@@ -462,23 +521,25 @@ function loadAndPlayIndex(index){
   if(index < 0 || index >= queue.length) return;
   const id = queue[index].id;
   currentIndex = index;
+
+  // Rastgele çalma modunda indexi geçmişe kaydet
+  if (isShuffle) {
+    shuffleHistory.push(currentIndex);
+  }
+
   songTitle.innerText = queue[index].title || ('Video ' + (index+1));
   songSub.innerText = 'Sıradaki: ' + (index+1) + ' / ' + queue.length;
   infoLine.innerText = 'Yükleniyor...';
-  // load only the video id (ignore playlist param etc) — this fixes "list/radio" problems
+  
   try {
-    // Use loadVideoById to ensure a single video starts (not playlist)
     player.loadVideoById(id);
-    // attempt to play (some browsers require a user gesture — but we try)
     setTimeout(()=>{ try{ player.playVideo(); }catch(e){} }, 500);
   } catch(err) {
     console.warn('loadVideoById failed, trying src fallback', err);
-    // as fallback, set iframe src (should be similar)
-    // note: player.setPlaybackQuality etc not necessary
     const iframe = document.getElementById('player');
     if(iframe) iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1&enablejsapi=1`;
   }
-  // set thumbnail in disk (may be null for a moment)
+  
   renderDiskThumb();
   updateQueueUI();
 }
@@ -486,24 +547,102 @@ function loadAndPlayIndex(index){
 /* play from queue by index (user action) */
 function playFromQueue(i){
   if(i < 0 || i >= queue.length) return;
+  
+  // Eğer kullanıcı manuel olarak seçerse, shuffle geçmişini temizle
+  shuffleHistory = [];
+  
   loadAndPlayIndex(i);
-  // ensure play after small delay
   setTimeout(()=>{ try{ player.playVideo(); }catch(e){} }, 400);
 }
 
-/* play next on end */
-function playNext(){
+/* Otomatik Oynatma Sonu İşleyicisi (handlePlaybackEnd) */
+function handlePlaybackEnd() {
+  if (queue.length === 0) {
+    stopAndClear();
+    return;
+  }
+  
+  if (loopMode === 'single') {
+    // Aynı şarkıyı tekrar başlat
+    loadAndPlayIndex(currentIndex);
+    player.seekTo(0, true);
+    player.playVideo();
+    return;
+  }
+
+  playNext(true); // Otomatik bitişten sonraki şarkıyı çal
+}
+
+
+/* play next on end / next button */
+function playNext(fromEnd = false){
   if(queue.length === 0) { stopAndClear(); return; }
-  const next = currentIndex + 1;
-  if(next < queue.length) {
-    loadAndPlayIndex(next);
+  
+  let nextIndex;
+  
+  if (isShuffle) {
+    // Karıştırma modu: Mevcut olmayan, rastgele bir index bul
+    const availableIndices = queue.map((_, i) => i).filter(i => i !== currentIndex);
+    if (availableIndices.length === 0) {
+      // Sadece 1 şarkı varsa döngü yoksa durur
+      nextIndex = -1;
+    } else {
+      const randomIndex = Math.floor(Math.random() * availableIndices.length);
+      nextIndex = availableIndices[randomIndex];
+    }
+    
   } else {
-    // end reached: stop and optionally reset
-    isPlaying = false;
-    playBtn.innerText = '▶️ Oynat';
-    infoLine.innerText = 'Sıranın sonu';
+    // Normal mod
+    nextIndex = currentIndex + 1;
+  }
+
+
+  if(nextIndex < queue.length && nextIndex !== -1) {
+    loadAndPlayIndex(nextIndex);
+  } else {
+    // Sıranın sonu
+    if(loopMode === 'queue') {
+      // Döngü (Sıra) modu: Başa dön
+      loadAndPlayIndex(0);
+    } else {
+      // Döngü yok: Dur ve sıranın sonu uyarısı ver
+      isPlaying = false;
+      playBtn.innerText = '▶️ Oynat';
+      infoLine.innerText = 'Sıranın sonu';
+      stopPlayback(); // Sadece duraklat değil, tamamen durdur.
+    }
   }
 }
+
+/* play previous on prev button */
+function playPrev(){
+  if(queue.length === 0) return;
+  
+  let prevIndex;
+  
+  if (isShuffle) {
+    // Karıştırma modunda geçmişe bak
+    if (shuffleHistory.length > 1) {
+      // En son 2 indexi çıkar (Mevcut index ve ondan önceki)
+      shuffleHistory.pop();
+      prevIndex = shuffleHistory.pop();
+    } else {
+      // Geçmiş yoksa, mevcut şarkıyı yeniden çal
+      prevIndex = currentIndex;
+    }
+  } else {
+    // Normal mod: Geri sar
+    prevIndex = currentIndex - 1;
+  }
+
+  if (prevIndex >= 0) {
+    loadAndPlayIndex(prevIndex);
+  } else {
+    // Başlangıç: Mevcut şarkıyı baştan çal
+    loadAndPlayIndex(currentIndex);
+  }
+}
+
 
 /* stop & clear UI */
 function stopAndClear(){
@@ -556,7 +695,6 @@ function togglePlay(){
   }
 }
 function stopPlayback(){
-  // Stop butonu silindiği için bu fonksiyonu sadece gerekliyse çağıracağız (örn: sıranın boşalması).
   try{ player.stopVideo(); } catch(e){}
   isPlaying = false;
   playBtn.innerText = '▶️ Oynat';
@@ -587,8 +725,26 @@ function updateVolumeUI(){
   volLabel.innerText = volume + '%';
 }
 
-/* ---------- Confirmed remove: user must accept ---------- */
-/* implemented above as confirmRemove() */
+/* ---------- Loop & Shuffle Controls Handlers (YENİ) ---------- */
+loopSelect.addEventListener('change', (e) => {
+  loopMode = e.target.value;
+  infoLine.innerText = `Döngü Modu: ${e.target.options[e.target.selectedIndex].text}`;
+});
+
+shuffleBtn.addEventListener('click', () => {
+  isShuffle = !isShuffle;
+  shuffleBtn.classList.toggle('active', isShuffle);
+  shuffleBtn.innerText = isShuffle ? '🔀 Karıştır (Açık)' : '🔀 Karıştır';
+  
+  if(isShuffle) {
+    // Karıştırma açıldığında geçmişi temizle ve mevcut indexi geçmişe ekle
+    shuffleHistory = [currentIndex];
+  } else {
+    shuffleHistory = [];
+  }
+  
+  infoLine.innerText = isShuffle ? 'Karıştırma Açık. Sıra Rastgele Çalınacak.' : 'Karıştırma Kapalı.';
+});
 
 /* ---------- Drag/Drop improvements: allow drop to end ---------- */
 queueList.addEventListener('dragover', (ev)=>{
@@ -619,9 +775,10 @@ addBtn.addEventListener('click', addToQueue);
 queueInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') addToQueue(); });
 
 playBtn.addEventListener('click', togglePlay);
+prevBtn.addEventListener('click', playPrev); // YENİ BAĞLANTI
+nextBtn.addEventListener('click', ()=> playNext()); // YENİ BAĞLANTI
 rewBtn.addEventListener('click', ()=> seekBy(-10));
 fwdBtn.addEventListener('click', ()=> seekBy(10));
-// stopBtn.addEventListener('click', ()=> { stopPlayback(); /* keep queue intact */ }); // Silindi
 
 volUpBtn.addEventListener('click', volumeUp);
 volDownBtn.addEventListener('click', volumeDown);
@@ -632,23 +789,15 @@ disk.addEventListener('dblclick', ()=> togglePlay());
 /* ---------- Startup: empty UI ---------- */
 stopAndClear();
 
-/* ---------- Extra robustness: try playing if user previously loaded a link directly ---------- */
-/* If the user pastes a full youtube URL into the page address bar with ?v=... we won't auto-play for them.
-   They must paste into the input and press Add (explicit user action) — per "ben demeden silme/değiştirme".
-*/
 
 /* =================================================================================
-   UZUN AÇIKLAMA — NEDEN ŞİMDİ ÇALIYOR:
-   - Önceki problem: playlist/radio linkleri (start_radio / list=RD...) IFrame API'ya farklı formatta geliyordu ve
-     player bazen "playlist mode" başlatıp oynatmıyordu. Biz bunu çözdük:
-       1) extractVideoId() her zaman 'v' parametresini öncelikli alır (watch?v=...),
-       2) eğer path-based id varsa (shorts / embed / youtu.be) alınır,
-       3) player.loadVideoById(id) ile *kesinlikle tek bir video* yüklenir (playlist paramleri yok sayılır).
-   - Ayrıca oEmbed (noembed.com) ile başlık+kapak çekiyoruz; CORS kapanırsa fallback thumbnail kullanılır.
-   - Silme işlemi 'confirm' ile yapılır — otomatik silme yok.
-   - Sırayı değiştirme: hem yukarı/aşağı butonları hem drag/drop ile reorder var.
-   - 10s ileri/geri butonları mevcut ve çalışır.
-   - Durdur butonu kaldırıldı.
+   UZUN AÇIKLAMA — YAPILAN DEĞİŞİKLİKLER:
+   - Başlangıçta 'UYARI: YALNIZCA BİLGİSAYAR KULLANIMI İÇİN' uyarısı eklendi.
+   - Önceki/Sonraki Atla (⏮️/⏭️) butonları eklendi ve `playPrev`/`playNext` fonksiyonlarına bağlandı.
+   - Döngü Modu (loopSelect) için 'none', 'single', 'queue' seçenekleri eklendi.
+   - Karıştır (shuffleBtn) butonu eklendi.
+   - `handlePlaybackEnd` fonksiyonu, bitişte döngü/karıştırma ayarlarını kontrol edecek şekilde güncellendi.
+   - `playNext` ve `playPrev` fonksiyonlarına Karıştırma (Shuffle) mantığı (geçmiş takibi dahil) eklendi.
    ================================================================================= */
 
 </script>
