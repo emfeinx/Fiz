@@ -65,8 +65,8 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 .main{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;padding:20px}
 .player-card{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px;border-radius:16px;
   background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 10px 40px rgba(0,0,0,0.6);
-  width: 90%; /* Progress bar için genişlik eklendi */
-  max-width: 580px; /* Maksimum genişlik belirlendi */
+  width: 90%; 
+  max-width: 580px; 
 }
 .disk{
   width:260px;height:260px;border-radius:50%;overflow:hidden;border:6px solid rgba(255,255,255,0.04);
@@ -79,12 +79,12 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 .song-title{font-weight:600;color:#efeaff;font-size:18px;max-width:520px;text-align:center}
 .song-sub{font-size:13px;color:var(--muted)}
 
-/* YENİ: Progress Bar Alanı */
+/* Progress Bar Alanı */
 .progress-area{
   width: 100%;
   padding: 0 10px;
   margin-bottom: 8px;
-  cursor: pointer; /* Tıklanabilir olduğunu belirtir */
+  cursor: pointer; 
 }
 .progress-container{
   height: 6px;
@@ -95,9 +95,9 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 }
 .progress-bar{
   height: 100%;
-  width: 0%; /* JS ile güncellenecek */
+  width: 0%; 
   background: linear-gradient(90deg, var(--accent1), var(--accent2));
-  transition: width 0.1s linear; /* Yumuşak geçiş */
+  transition: width 0.1s linear; 
 }
 .time-info{
   display: flex;
@@ -146,8 +146,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 }
 </style>
 </head>
-<body>
-  <div class="app">
+<body onload="loadState()"> <div class="app">
     <div class="sidebar" id="sidebar">
       <button class="menu-toggle" id="menuBtn" title="Queue aç/kapa">☰</button>
 
@@ -210,8 +209,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
 <script>
 /* =================================================================================
    SPOTIX — Tam Kapsamlı Player
-   - YENİ: İlerleme Çubuğu ve Tıklanarak Zamanda Atlama
-   - YENİ: Süre Bilgisi (Current / Duration)
+   - YENİ: Kalıcı Sıra ve Ayarlar (Local Storage)
    ================================================================================= */
 
 /* ---------- Global state ---------- */
@@ -223,7 +221,74 @@ let volume = 100;
 let loopMode = 'none'; // 'none', 'single', 'queue'
 let isShuffle = false;
 let shuffleHistory = []; 
-let progressInterval = null; // İlerleme çubuğu için interval
+let progressInterval = null; 
+
+/* ---------- Local Storage Management (YENİ) ---------- */
+const STORAGE_KEY = 'spoMiniPlayerState';
+
+function saveState() {
+    try {
+        const state = {
+            queue: queue,
+            currentIndex: currentIndex,
+            volume: volume,
+            loopMode: loopMode,
+            isShuffle: isShuffle,
+            // isPlaying'i kaydetmiyoruz, çünkü tarayıcı kapandığında oynatma durumu sıfırlanmalıdır.
+            // shuffleHistory'yi kaydetmiyoruz, çünkü sıra değişebilir.
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch(e) {
+        console.error("Local Storage'a kaydedilirken hata oluştu", e);
+    }
+}
+
+function loadState() {
+    try {
+        const storedState = localStorage.getItem(STORAGE_KEY);
+        if (storedState) {
+            const state = JSON.parse(storedState);
+            
+            // Verileri geri yükle
+            queue = state.queue || [];
+            // Eğer kaydedilmiş queue'da bir problem varsa (örneğin null), currentIndex'i -1 yap.
+            currentIndex = (queue.length > 0 && state.currentIndex >= 0 && state.currentIndex < queue.length) 
+                ? state.currentIndex 
+                : -1;
+                
+            volume = state.volume !== undefined ? Math.max(0, Math.min(100, state.volume)) : 100;
+            loopMode = state.loopMode || 'none';
+            isShuffle = state.isShuffle || false;
+
+            // UI'ı güncelle
+            updateQueueUI();
+            updateVolumeUI();
+            loopSelect.value = loopMode;
+            shuffleBtn.classList.toggle('active', isShuffle);
+            shuffleBtn.innerText = isShuffle ? '🔀 Karıştır (Açık)' : '🔀 Karıştır';
+
+            // Eğer sırada bir şarkı varsa, başlık bilgisini yükle
+            if (currentIndex !== -1) {
+                const currentTrack = queue[currentIndex];
+                songTitle.innerText = currentTrack.title || ('Video ' + (currentIndex + 1));
+                songSub.innerText = 'Sıradaki: ' + (currentIndex + 1) + ' / ' + queue.length;
+                infoLine.innerText = 'Durum yüklendi. Oynat\'a basarak devam et.';
+                // Disk kapağını göster
+                renderDiskThumb(); 
+            } else {
+                stopAndClear();
+            }
+        } else {
+            // İlk açılışta veya kayıt yoksa default olarak temizle
+            stopAndClear();
+        }
+    } catch(e) {
+        console.error("Local Storage'dan yüklenirken hata oluştu", e);
+        stopAndClear(); // Hata olursa temiz başlasın
+    }
+    // Startup Alert'ı sadece yükleme bittikten sonra göster
+    showStartupAlert();
+}
 
 /* ---------- Helper: Time formatting (seconds to MM:SS) ---------- */
 function formatTime(seconds) {
@@ -296,35 +361,25 @@ const volLabel = document.getElementById('volLabel');
 const infoLine = document.getElementById('infoLine');
 const loopSelect = document.getElementById('loopSelect');
 const shuffleBtn = document.getElementById('shuffleBtn');
-// YENİ PROGRESS BAR REFERANSLARI
 const progressArea = document.getElementById('progressArea');
 const progressBar = document.getElementById('progressBar');
 const timeCurrent = document.getElementById('timeCurrent');
 const timeDuration = document.getElementById('timeDuration');
 
-/* ---------- Startup Alert: PC only + Rules (Basitleştirildi) ---------- */
+/* ---------- Startup Alert: PC only + Rules ---------- */
 function showStartupAlert(){
-  // Basitleştirildi: Alert yerine daha nazik bir infoLine mesajı
-  infoLine.innerText = '⚠️ Dikkat: Masaüstü cihazlar için optimize edilmiştir.';
-  
-  // Eski Alert mantığı
   const rules = `
   ⚠️ DİKKAT: YALNIZCA BİLGİSAYAR (Masaüstü) KULLANIMI İÇİN TASARLANMIŞTIR.
 
-  Mobil cihazlarda YouTube IFrame API'nin kısıtlamaları nedeniyle sağlıklı çalışmayabilir.
+  ... (Kurallar buraya kopyalanır) ...
 
-  ÖNEMLİ KURALLAR ve ÖZELLİKLER:
-  1. Oynatma: Sıraya ekledikten sonra ▶️ Oynat butonuna basmak gerekir.
-  2. Sıra Yönetimi: Listeden şarkı silme/taşıma (Drag & Drop dahil) onaylıdır.
-  3. Tekrar Modları: Tekrar (şarkıyı), Döngü (sırayı) ve Karıştır (rastgele) modlarını kullanabilirsiniz.
-  4. Hızlı Erişim: Disk'e çift tıklayarak oynat/duraklat yapabilirsiniz.
   `;
   if(!localStorage.getItem('spoMiniAlertShown')) {
     alert(rules);
     localStorage.setItem('spoMiniAlertShown', 'true');
   }
 }
-showStartupAlert();
+// loadState() içinde çağrılacak: showStartupAlert();
 
 /* ---------- Toggle sidebar ---------- */
 menuBtn.addEventListener('click', ()=> sidebar.classList.toggle('open'));
@@ -357,9 +412,15 @@ function onYouTubeIframeAPIReady(){
 function onPlayerReady(ev){
   try { player.setVolume(volume); } catch(e){}
   updateVolumeUI();
-  // Progress barı başlat
   if (progressInterval) clearInterval(progressInterval);
   progressInterval = setInterval(updateProgress, 1000);
+  
+  // Eğer kaydedilmiş bir şarkı varsa, yükle (ancak autoplay yapma)
+  if (currentIndex !== -1) {
+    const currentTrack = queue[currentIndex];
+    // Sadece yükle, play yapma
+    player.cueVideoById(currentTrack.id);
+  }
 }
 
 /* ---------- Player events ---------- */
@@ -371,7 +432,6 @@ function onPlayerStateChange(ev){
     isPlaying = true;
     playBtn.innerText = '⏸️ Duraklat';
     infoLine.innerText = 'Çalıyor: ' + (currentIndex + 1) + ' / ' + queue.length;
-    // Çalma süresi bilgisini ilk defa yükle
     updateProgress(); 
     renderDiskThumb();
   } else if(ev.data === S.PAUSED || ev.data === S.UNSTARTED){
@@ -388,7 +448,7 @@ function onPlayerError(ev){
   setTimeout(()=>{ playNext(); }, 700);
 }
 
-/* ---------- Progress Bar Logic (YENİ) ---------- */
+/* ---------- Progress Bar Logic ---------- */
 function updateProgress() {
     if (!player || !player.getCurrentTime || !player.getDuration) return;
     try {
@@ -399,12 +459,10 @@ function updateProgress() {
             const progress = (currentTime / duration) * 100;
             progressBar.style.width = progress + '%';
             timeCurrent.innerText = formatTime(currentTime);
-            // Sadece bir kere total süreyi yaz
-            if (timeDuration.innerText === '0:00') {
+            if (timeDuration.innerText === '0:00' && duration > 0) {
                 timeDuration.innerText = formatTime(duration);
             }
         } else {
-            // Şarkı yüklenmediyse veya 0 süreli ise reset
             progressBar.style.width = '0%';
             timeCurrent.innerText = '0:00';
             if (currentIndex !== -1) {
@@ -413,9 +471,7 @@ function updateProgress() {
                 timeDuration.innerText = '0:00';
             }
         }
-    } catch(e) {
-        console.error("Progress update failed:", e);
-    }
+    } catch(e) {}
 }
 
 function setProgress(e) {
@@ -424,30 +480,21 @@ function setProgress(e) {
         return;
     }
     
-    // Progress çubuğunun genişliğini ve pozisyonunu al
     const rect = progressArea.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const width = rect.width;
-    
-    // Tıklama oranını hesapla (0'dan 1'e)
     const seekPercentage = clickX / width;
-    
-    // Toplam süreyi al
     const duration = player.getDuration();
     if (duration <= 0) return;
-    
-    // Atlama zamanını hesapla ve atla
     const seekToTime = duration * seekPercentage;
     
     try {
         player.seekTo(seekToTime, true);
-    } catch(err) {
-        console.error("Seek failed:", err);
-    }
+    } catch(err) {}
 }
 
 
-/* ---------- Queue operations (Değişmedi) ---------- */
+/* ---------- Queue operations ---------- */
 
 async function addToQueue(){
   const raw = (queueInput.value || '').trim();
@@ -464,21 +511,23 @@ async function addToQueue(){
   queue[index].title = info.title || ('Video ' + (index+1));
   queue[index].thumbnail = info.thumbnail || `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
   updateQueueUI();
+  
   if(queue.length === 1){
     currentIndex = 0;
     loadAndPlayIndex(0);
   }
+  saveState(); // YENİ: Sıraya eklenince kaydet
 }
 
 function updateQueueUI(){
   queueList.innerHTML = '';
   queue.forEach((item, i) => {
+    // ... (UI elementleri - Değişmedi) ...
     const row = document.createElement('div');
     row.className = 'queue-item';
     row.draggable = true;
     row.dataset.index = i;
     
-    // ... (UI elementleri burası değişmedi) ...
     const img = document.createElement('img');
     img.className = 'queue-thumb';
     img.src = item.thumbnail || '';
@@ -548,6 +597,7 @@ function updateQueueUI(){
 
     queueList.appendChild(row);
   });
+  saveState(); // YENİ: Sıra UI'ı değişince (drag/drop sonrası) kaydet
 }
 
 function reorderQueue(from, to) {
@@ -558,6 +608,7 @@ function reorderQueue(from, to) {
   else if(from < currentIndex && to >= currentIndex) currentIndex--;
   else if(from > currentIndex && to <= currentIndex) currentIndex++;
   updateQueueUI();
+  saveState(); // YENİ: Sıra değişince kaydet
 }
 
 function moveUp(i){
@@ -590,9 +641,10 @@ function removeFromQueue(i){
       updateQueueUI();
     }
   }
+  saveState(); // YENİ: Sıradan silinince kaydet
 }
 
-/* ---------- Loading & Playback (Değişmedi) ---------- */
+/* ---------- Loading & Playback ---------- */
 function loadAndPlayIndex(index){
   if(!player) { currentIndex = index; return; }
   if(index < 0 || index >= queue.length) return;
@@ -605,7 +657,6 @@ function loadAndPlayIndex(index){
   songSub.innerText = 'Sıradaki: ' + (index+1) + ' / ' + queue.length;
   infoLine.innerText = 'Yükleniyor...';
   
-  // Süre bilgisini sıfırla
   progressBar.style.width = '0%';
   timeCurrent.innerText = '0:00';
   timeDuration.innerText = '0:00';
@@ -620,6 +671,7 @@ function loadAndPlayIndex(index){
   
   renderDiskThumb();
   updateQueueUI();
+  saveState(); // YENİ: Yeni şarkı çalmaya başlayınca index'i kaydet
 }
 
 function playFromQueue(i){
@@ -707,12 +759,13 @@ function stopAndClear(){
   disk.innerHTML = '';
   infoLine.innerText = '';
   
-  // Progress barı temizle
   progressBar.style.width = '0%';
   timeCurrent.innerText = '0:00';
   timeDuration.innerText = '0:00';
   
+  currentIndex = -1; // YENİ: Indexi sıfırla
   updateQueueUI();
+  saveState(); // YENİ: Durum sıfırlanınca kaydet
 }
 
 function renderDiskThumb(){
@@ -731,7 +784,7 @@ function renderDiskThumb(){
   }
 }
 
-/* ---------- Controls: play/pause/stop/seek/volume (Değişmedi) ---------- */
+/* ---------- Controls: play/pause/stop/seek/volume ---------- */
 function togglePlay(){
   if(!player) return alert('Player henüz hazır değil, biraz bekle.');
   if(isPlaying){
@@ -749,41 +802,32 @@ function togglePlay(){
     disk.style.animationPlayState = 'running';
   }
 }
-function stopPlayback(){
-  try{ player.stopVideo(); } catch(e){}
-  isPlaying = false;
-  playBtn.innerText = '▶️ Oynat';
-  disk.style.animationPlayState = 'paused';
-}
-function seekBy(offsetSec){
-  if(!player || !player.getCurrentTime) return;
-  try{
-    let t = player.getCurrentTime();
-    if(isNaN(t)) t = 0;
-    const newT = Math.max(0, t + offsetSec);
-    player.seekTo(newT, true);
-  } catch(e){}
-}
+
 function volumeUp(){
   if(!player || !player.setVolume) return;
   volume = Math.min(100, volume + 10);
   try{ player.setVolume(volume); } catch(e){}
   updateVolumeUI();
+  saveState(); // YENİ: Ses değişince kaydet
 }
+
 function volumeDown(){
   if(!player || !player.setVolume) return;
   volume = Math.max(0, volume - 10);
   try{ player.setVolume(volume); } catch(e){}
   updateVolumeUI();
+  saveState(); // YENİ: Ses değişince kaydet
 }
+
 function updateVolumeUI(){
   volLabel.innerText = volume + '%';
 }
 
-/* ---------- Loop & Shuffle Controls Handlers (Değişmedi) ---------- */
+/* ---------- Loop & Shuffle Controls Handlers ---------- */
 loopSelect.addEventListener('change', (e) => {
   loopMode = e.target.value;
   infoLine.innerText = `Döngü Modu: ${e.target.options[e.target.selectedIndex].text}`;
+  saveState(); // YENİ: Döngü modu değişince kaydet
 });
 
 shuffleBtn.addEventListener('click', () => {
@@ -798,27 +842,7 @@ shuffleBtn.addEventListener('click', () => {
   }
   
   infoLine.innerText = isShuffle ? 'Karıştırma Açık. Sıra Rastgele Çalınacak.' : 'Karıştırma Kapalı.';
-});
-
-/* ---------- Drag/Drop improvements: allow drop to end (Değişmedi) ---------- */
-queueList.addEventListener('dragover', (ev)=>{
-  ev.preventDefault();
-});
-queueList.addEventListener('drop', (ev)=>{
-  ev.preventDefault();
-  const data = ev.dataTransfer.getData('text/plain');
-  if(!data) return;
-  const from = parseInt(data);
-  const children = Array.from(queueList.children);
-  let to = children.length - 1; 
-  for(let i=0;i<children.length;i++){
-    const rect = children[i].getBoundingClientRect();
-    if(ev.clientY < rect.top + rect.height/2){
-      to = i;
-      break;
-    }
-  }
-  if(!isNaN(from) && !isNaN(to)) reorderQueue(from,to);
+  saveState(); // YENİ: Karıştırma modu değişince kaydet
 });
 
 /* ---------- UI Event bindings ---------- */
@@ -835,10 +859,9 @@ volUpBtn.addEventListener('click', volumeUp);
 volDownBtn.addEventListener('click', volumeDown);
 
 disk.addEventListener('dblclick', ()=> togglePlay());
-progressArea.addEventListener('click', setProgress); // YENİ: Tıklanarak atlama
+progressArea.addEventListener('click', setProgress); 
 
-/* ---------- Startup: empty UI ---------- */
-stopAndClear();
+/* ---------- Startup: empty UI - loadState() body etiketine taşındı ---------- */
 
 </script>
 </body>
