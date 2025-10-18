@@ -665,7 +665,16 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
         </div>
         
         <h3 class="profile-title" style="margin-top: 15px;" data-i18n="category_system">🛠️ Sistem Ayarları</h3>
-        
+
+         <div class="profile-item">
+            <label for="themeSelect" data-i18n="label_theme">Tema Seçici</label>
+            <div class="theme-selector-group">
+                <div class="theme-swatch active" id="swatchDefault" data-theme-key="default" title="Varsayılan Tema"></div>
+                <div class="theme-swatch" id="swatchGreen" data-theme-key="dark-green" title="Koyu Yeşil Tema"></div>
+                <div class="theme-swatch" id="swatchRed" data-theme-key="dark-red" title="Koyu Kırmızı Tema"></div>
+            </div>
+        </div>
+         
         <div class="profile-item">
             <label for="languageSelect" data-i18n="label_language">Dil</label>
             <select id="languageSelect">
@@ -2059,3 +2068,4 @@ requestAnimationFrame(updatePerformanceMetrics);
 </script>
 </body>
 </html>
+
