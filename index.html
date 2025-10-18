@@ -19,6 +19,57 @@
   --text-color: #fff; /* Ana metin rengi */
 }
 
+/* --- YENİ TEMA ÖZELLEŞTİRMELERİ --- */
+.theme-dark-green {
+    --bg1: #0a0e0a; 
+    --bg2: #141f14;
+    --accent1: #34d399; /* Zümrüt Yeşili */
+    --accent2: #6ee7b7; /* Açık Zümrüt Yeşili */
+    --error: #ef4444;
+}
+
+.theme-dark-red {
+    --bg1: #1a0000;
+    --bg2: #2b0000;
+    --accent1: #ff5252; /* Kırmızı */
+    --accent2: #ff9999; /* Açık Kırmızı */
+}
+
+/* Tema Seçici Düğmeleri Stilleri */
+.theme-selector-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+.theme-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+}
+.theme-swatch:hover {
+    transform: scale(1.1);
+}
+.theme-swatch.active {
+    border-color: var(--accent2);
+    transform: scale(1.1);
+    box-shadow: 0 0 10px var(--accent2);
+}
+/* Swatch'ların kendi renkleri */
+#swatchDefault {
+    background: linear-gradient(45deg, #7b2cff, #00c2ff); /* Varsayılan Mor/Mavi */
+}
+#swatchGreen {
+    background: linear-gradient(45deg, #34d399, #6ee7b7); /* Yeşil */
+}
+#swatchRed {
+    background: linear-gradient(45deg, #ff5252, #ff9999); /* Kırmızı */
+}
+/* --- TEMA STİLLERİ SONU --- */
+
+
 *{box-sizing:border-box;font-family:Inter, "Poppins", system-ui, Arial, sans-serif}
 /* DÜZELTME: Sayfa kaydırmasını tamamen engellendi */
 html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(--bg2));
@@ -665,7 +716,15 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
         </div>
         
         <h3 class="profile-title" style="margin-top: 15px;" data-i18n="category_system">🛠️ Sistem Ayarları</h3>
-
+        
+        <div class="profile-item">
+            <label for="themeSelect" data-i18n="label_theme">Tema Seçici</label>
+            <div class="theme-selector-group">
+                <div class="theme-swatch active" id="swatchDefault" data-theme-key="default" title="Varsayılan Tema"></div>
+                <div class="theme-swatch" id="swatchGreen" data-theme-key="dark-green" title="Koyu Yeşil Tema"></div>
+                <div class="theme-swatch" id="swatchRed" data-theme-key="dark-red" title="Koyu Kırmızı Tema"></div>
+            </div>
+        </div>
         <div class="profile-item">
             <label for="languageSelect" data-i18n="label_language">Dil</label>
             <select id="languageSelect">
@@ -732,6 +791,8 @@ let isPerfMonEnabled = false;
 let currentLanguage = 'tr';
 let activeSidebarTab = 'queue'; // 'queue', 'playlists' veya 'history'
 let selectedPlaylistKey = null; // Playlistler sekmesinde seçili olan playlist'in anahtarı
+// YENİ TEMA DEĞİŞKENİ
+let currentTheme = 'default'; // 'default', 'dark-green', 'dark-red'
 
 // LocalStorage Anahtarları
 const STATE_KEY = 'spomini_state';
@@ -798,6 +859,11 @@ const historyArea = document.getElementById('historyArea');
 const historyList = document.getElementById('historyList');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const historyCountDisplay = document.getElementById('historyCountDisplay');
+
+// YENİ EKLENTİ: TEMA ELEMENTLERİ
+const swatchDefault = document.getElementById('swatchDefault');
+const swatchGreen = document.getElementById('swatchGreen');
+const swatchRed = document.getElementById('swatchRed');
 
 
 // PERFORMANS MONİTÖRÜ ELEMENTLERİ
@@ -1101,6 +1167,29 @@ function updateVolumeUI() {
     }
 }
 
+// TEMA KONTROLÜ
+function setTheme(themeKey) {
+    // body sınıfını temizle
+    document.body.className = '';
+    
+    // Yeni temayı uygula
+    if (themeKey !== 'default') {
+        document.body.classList.add(`theme-${themeKey}`);
+    }
+    
+    // Swatch'ların (renk düğmeleri) etkinliğini güncelle
+    document.querySelectorAll('.theme-swatch').forEach(swatch => {
+        swatch.classList.remove('active');
+    });
+    const activeSwatch = document.querySelector(`[data-theme-key="${themeKey}"]`);
+    if (activeSwatch) {
+        activeSwatch.classList.add('active');
+    }
+    
+    currentTheme = themeKey;
+    saveState(); // Tema değişimini hemen kaydet
+}
+
 // ----------------------------------------------------
 // III. SIRA YÖNETİMİ (KORUNDU)
 // ----------------------------------------------------
@@ -1209,7 +1298,7 @@ function updateQueueUI(activeIdx) {
 }
 
 // ----------------------------------------------------
-// IV. GEÇMİŞ (HISTORY) YÖNETİMİ - YENİ EKLENTİ
+// IV. GEÇMİŞ (HISTORY) YÖNETİMİ - KORUNDU
 // ----------------------------------------------------
 
 /**
@@ -1327,8 +1416,15 @@ function clearHistory() {
 
 let draggedItem = null;
 function addDragDropListeners() {
-    // ... Mevcut Drag Drop mantığı
+    const items = queueList.querySelectorAll('.queue-item');
+    items.forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+    });
+    queueList.addEventListener('dragover', handleDragOver);
+    queueList.addEventListener('drop', handleDrop);
 }
+
 function handleDragStart(e) {
     draggedItem = e.target;
     e.dataTransfer.effectAllowed = 'move';
@@ -1371,7 +1467,7 @@ function handleDragEnd(e) {
 }
 
 // ----------------------------------------------------
-// VI. AYARLAR & PROFİL YÖNETİMİ (KORUNDU)
+// VI. AYARLAR & PROFİL YÖNETİMİ (GÜNCELLENDİ)
 // ----------------------------------------------------
 
 function updateProfileUI() {
@@ -1396,6 +1492,9 @@ function updateProfileUI() {
     toggleBgAnim(toggleBgAnimCheckbox.checked);
     togglePerfMonCheckbox.checked = isPerfMonEnabled;
     togglePerformanceMonitor(isPerfMonEnabled);
+    
+    // 4. Tema (UI güncellendi)
+    setTheme(currentTheme); 
 
     translateHTML(); 
     saveState();
@@ -1421,7 +1520,8 @@ function saveState() {
         currentLanguage: currentLanguage,
         volume: player ? player.getVolume() : (localStorage.getItem('playerVolume') || 50),
         shuffleHistory: shuffleHistory,
-        activeSidebarTab: activeSidebarTab
+        activeSidebarTab: activeSidebarTab,
+        currentTheme: currentTheme // YENİ: Tema Bilgisini Kaydet
     };
     localStorage.setItem(STATE_KEY, JSON.stringify(state));
     saveHistoryToStorage();
@@ -1447,6 +1547,7 @@ function loadState() {
         currentLanguage = state.currentLanguage || 'tr';
         shuffleHistory = state.shuffleHistory || [];
         activeSidebarTab = state.activeSidebarTab || 'queue';
+        currentTheme = state.currentTheme || 'default'; // YENİ: Temayı Yükle
         
         loopSelect.value = loopMode;
         if (isShuffle) {
@@ -1459,7 +1560,7 @@ function loadState() {
     // History yüklemesi
     history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
 
-    updateProfileUI();
+    updateProfileUI(); // Temayı ve diğer ayarları uygular
     loadPlaylistsFromStorage();
     
     // UI'ın hazırlanması için başlangıçta queue listesini çiz
@@ -1549,6 +1650,7 @@ const i18n = {
         label_toggle_notifications: "Uygulama İçi Mesajları Göster",
         desc_notifications: "Örn: 'Şarkı sıraya eklendi.' gibi uyarılar.",
         category_system: "🛠️ Sistem Ayarları",
+        label_theme: "Tema Seçici", // YENİ TEMA ETİKETİ
         label_language: "Dil",
         label_toggle_bganim: "Arka Plan Animasyonunu Kapat",
         label_toggle_perfmon: "Performans Monitörünü Göster",
@@ -2019,6 +2121,13 @@ togglePerfMonCheckbox.addEventListener('change', (e) => {
     togglePerformanceMonitor(e.target.checked);
 });
 
+// YENİ EKLENTİ: Tema Seçici Event bindings
+document.querySelectorAll('.theme-swatch').forEach(swatch => {
+    swatch.addEventListener('click', (e) => {
+        const themeKey = e.target.getAttribute('data-theme-key');
+        setTheme(themeKey);
+    });
+});
 
 clearDataBtn.addEventListener('click', clearAllData);
 
@@ -2059,5 +2168,3 @@ requestAnimationFrame(updatePerformanceMetrics);
 </script>
 </body>
 </html>
-
-
