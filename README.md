@@ -1,58 +1,36 @@
-##SpoMini: Güçlü Mini YouTube Oynatıcısı
+Harika, yüklediğiniz HTML dosyası, SpoMini - Güçlü Mini Player adlı bir müzik çalar uygulamasına ait detayları gösteriyor. Bu bilgilere dayanarak, projeniz için profesyonel bir GitHub README yazısı hazırladım:
 
-##🌟 Proje Hakkında
-SpoMini, saf HTML, CSS ve Vanilla JavaScript kullanılarak geliştirilmiş, minimalist ve özellik dolu bir mini müzik oynatıcısıdır. Proje, herhangi bir harici kütüphaneye (YouTube IFrame API hariç) bağımlı kalmadan, modern ve karanlık bir arayüz ile YouTube videolarını oynatmanıza, kendi çalma sıranızı (Queue) yönetmenize ve playlistlerinizi yerel olarak kaydetmenize olanak tanır.
+🎶 SpoMini — Güçlü Mini Player
+SpoMini, minimalist ve şık bir arayüzde güçlü müzik dinleme deneyimi sunan, tamamen kişiselleştirilebilir bir mini oynatıcıdır. YouTube entegrasyonu sayesinde dilediğiniz müziği kolayca sıraya ekleyebilir ve gelişmiş özelliklerle çalma listenizi yönetebilirsiniz.
 
-Son versiyon, YouTube'un API kısıtlamalarını aşmak ve performansı artırmak amacıyla video bilgilerini (başlık, sanatçı) yerel placeholder verileriyle değiştirmeyi ve yalnızca video kapağını (thumbnail) göstermeyi hedefleyen kararlı bir yapıya sahiptir.
+✨ Temel Özellikler
+Uygulamanın ana işlevselliği ve tasarımından çıkarılan temel özellikler şunlardır:
 
----
+YouTube Entegrasyonu: Doğrudan YouTube URL veya ID'leri ile müzikleri hızlıca sıraya ekleme imkanı.
 
-##✨ Temel Özellikler
-YouTube Entegrasyonu: YouTube IFrame API'si aracılığıyla URL veya Video ID ile kolayca şarkı ekleme.
+Gelişmiş Sıra Yönetimi (Queue): Sürükle-bırak (Drag-and-drop) desteği ile çalma sırasını kolayca düzenleme.
 
-Gelişmiş Kuyruk Yönetimi: Çalma sırasındaki şarkıları ekleme, kaldırma ve sürükle-bırak (Drag & Drop) ile yeniden düzenleme.
+Playlist Özelliği: Mevcut sırayı kaydederek, daha sonra yükleyebileceğiniz kişisel çalma listeleri oluşturma, yeniden adlandırma ve silme.
 
-Playlist Sistemi: Oluşturduğunuz çalma sıralarını tarayıcınızın Yerel Depolamasına (LocalStorage) kaydedin, yükleyin ve yönetin.
+Görsel Oynatıcı: Çalan şarkının albüm kapağını gösteren dönen bir disk (animasyonlu) ve detaylı ilerleme çubuğu.
 
-Minimalist Tasarım: Modern, karanlık tema ve tercihe bağlı olarak kapatılabilen akıcı arka plan animasyonları.
+Kapsamlı Kontroller: Geri/İleri sarma (⏪ 10sn, 10sn ⏩), önceki/sonraki şarkıya geçiş, döngü (Tek Şarkı/Tüm Sıra) ve karıştırma (Shuffle) modları.
 
-Disk Animasyonu: Çalan parçanın kapağını dönen bir disk (vinil) olarak görselleştirir.
+Kullanıcı Ayarları (Settings):
 
-Oynatma Kontrolleri: Duraklat/Oynat, İleri/Geri Sarma (10 saniye), Önceki/Sonraki Parça, Ses Kontrolleri ve İlerleme Çubuğu ile hızlı atlama.
+Profil: Kullanıcı adı ve avatar ayarlama.
 
-Oynatma Modları: Tek şarkı döngüsü (Loop One), tüm sıra döngüsü (Loop All) ve rastgele çalma (Shuffle) modları.
+Görünüm: Koyu, Açık ve Canlı (Vibrant) tema seçenekleri ile arka plan animasyonunu kapatma imkanı.
 
-Kişiselleştirme: Kullanıcı adı, avatar (resim yükleme ve gösterme) ve dil (Türkçe/İngilizce) gibi gelişmiş ayarlar.
+Sistem: Dil seçeneği (Türkçe ve İngilizce) ve performans monitörü açma/kapama.
 
----
+Veri Yönetimi: Tüm ayarları ve playlistleri JSON formatında içe/dışa aktarma (yedekleme) özelliği.
 
-##🚀 Nasıl Başlatılır
-SpoMini, sadece tek bir HTML dosyası (index.html) olduğu için kurulumu son derece basittir.
+🚀 Kullanım
+Sıraya Ekleme: Sol tarafta bulunan Sıra sekmesinde, YouTube URL'sini veya ID'sini girip "Sıraya Ekle" butonuna tıklayarak müziği çalma listesine dahil edin.
 
-Yöntem 1: Yerel Olarak Çalıştırma
-Bu depoyu klonlayın veya son index.html dosyasını indirin.
+Oynatma: Ana ekrandaki ▶️ Oynat butonu ile müziği başlatın.
 
-Dosyayı herhangi bir modern web tarayıcısı (Chrome, Firefox, Edge vb.) ile açın.
+Playlist Oluşturma: Playlistler sekmesine geçin ve "Mevcut Sırayı Kaydet" butonu ile mevcut sıranızı bir çalma listesi olarak kaydedin.
 
-Yöntem 2: GitHub Pages Kullanımı
-index.html dosyasını doğrudan GitHub Pages'da yayınlayarak anında çalışan bir mini oynatıcıya sahip olabilirsiniz.
-
----
-
-##💡 Kullanım Adımları
-Şarkı Ekleme: Sol taraftaki Sıra panelini açın. YouTube URL'sini veya video ID'sini giriş alanına yapıştırın ve "Sıraya Ekle" butonuna tıklayın.
-
-Playlist Oluşturma: Şarkılarınızı sıraya ekledikten sonra, Playlistler sekmesine geçin ve sırayı kalıcı olarak kaydetmek için bir isim verin.
-
-Ayarlar: Sağ taraftaki ⚙️ ikonuna tıklayarak profil bilgilerinizi ve uygulamanın görünüm/davranış ayarlarını değiştirebilirsiniz.
-
----
-
-##🛠️ Teknolojiler
-HTML5 & CSS3 (Vanilla)
-
-Vanilla JavaScript (ES6+)
-
-YouTube IFrame Player API
-
-LocalStorage (Kalıcı veri saklama için)
+Ayarlar: Sağ üst köşedeki ⚙️ (Ayarlar) butonu ile profilinizi, görünümü ve veri yönetiminizi kişiselleştirin.
