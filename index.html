@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title id="appTitle">SpoMini — Güçlü Mini Player</title>
+<title id="appTitle">Tiz — Güçlü Mini Player</title>
 <style>
 /* -------------------------
    TEMEL STİLLER & LAYOUT
@@ -1597,7 +1597,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
             }
             
             // Ana başlığı güncelle
-            appTitle.textContent = `▶ ${songData.title} - SpoMini`;
+            appTitle.textContent = `▶ ${songData.title} - Tiz`;
             
             showInfo(`Şimdi çalıyor: ${songData.title}`);
             saveState();
@@ -1668,24 +1668,24 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
     // VII. YEREL DEPOLAMA (LOCAL STORAGE)
     
     function saveState() {
-        localStorage.setItem('spoMini_queue', JSON.stringify(queue));
-        localStorage.setItem('spoMini_currentIndex', currentIndex);
-        localStorage.setItem('spoMini_loopMode', loopMode);
-        localStorage.setItem('spoMini_isShuffle', isShuffle);
-        localStorage.setItem('spoMini_currentVolume', currentVolume);
-        localStorage.setItem('spoMini_userInfo', JSON.stringify(userInfo));
-        localStorage.setItem('spoMini_settings', JSON.stringify(settings));
-        localStorage.setItem('spoMini_playlists', JSON.stringify(playlists));
-        localStorage.setItem('spoMini_selectedPlaylistKey', selectedPlaylistKey);
+        localStorage.setItem('tiz_queue', JSON.stringify(queue));
+        localStorage.setItem('tiz_currentIndex', currentIndex);
+        localStorage.setItem('tiz_loopMode', loopMode);
+        localStorage.setItem('tiz_isShuffle', isShuffle);
+        localStorage.setItem('tiz_currentVolume', currentVolume);
+        localStorage.setItem('tiz_userInfo', JSON.stringify(userInfo));
+        localStorage.setItem('tiz_settings', JSON.stringify(settings));
+        localStorage.setItem('tiz_playlists', JSON.stringify(playlists));
+        localStorage.setItem('tiz_selectedPlaylistKey', selectedPlaylistKey);
     }
     
     window.loadState = function() {
         // Queue ve Player
-        const savedQueue = localStorage.getItem('spoMini_queue');
-        const savedIndex = localStorage.getItem('spoMini_currentIndex');
-        const savedLoopMode = localStorage.getItem('spoMini_loopMode');
-        const savedIsShuffle = localStorage.getItem('spoMini_isShuffle');
-        const savedVolume = localStorage.getItem('spoMini_currentVolume');
+        const savedQueue = localStorage.getItem('tiz_queue');
+        const savedIndex = localStorage.getItem('tiz_currentIndex');
+        const savedLoopMode = localStorage.getItem('tiz_loopMode');
+        const savedIsShuffle = localStorage.getItem('tiz_isShuffle');
+        const savedVolume = localStorage.getItem('tiz_currentVolume');
         
         if (savedQueue) {
             queue = JSON.parse(savedQueue);
@@ -1718,7 +1718,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
         }
         
         // User Info
-        const savedUserInfo = localStorage.getItem('spoMini_userInfo');
+        const savedUserInfo = localStorage.getItem('tiz_userInfo');
         if (savedUserInfo) {
             userInfo = JSON.parse(savedUserInfo);
             userNameInput.value = userInfo.name;
@@ -1728,7 +1728,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
         }
         
         // Settings
-        const savedSettings = localStorage.getItem('spoMini_settings');
+        const savedSettings = localStorage.getItem('tiz_settings');
         if (savedSettings) {
             settings = JSON.parse(savedSettings);
             toggleBgAnimCheckbox.checked = !settings.isBgAnimEnabled;
@@ -1739,12 +1739,12 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
         }
         
         // Playlistler
-        const savedPlaylists = localStorage.getItem('spoMini_playlists');
+        const savedPlaylists = localStorage.getItem('tiz_playlists');
         if (savedPlaylists) {
             playlists = JSON.parse(savedPlaylists);
             renderPlaylistList(); // Yeni playlist kartlarını render et
         }
-        const savedSelectedPlaylistKey = localStorage.getItem('spoMini_selectedPlaylistKey');
+        const savedSelectedPlaylistKey = localStorage.getItem('tiz_selectedPlaylistKey');
         if (savedSelectedPlaylistKey) {
             selectedPlaylistKey = savedSelectedPlaylistKey;
         }
@@ -1870,7 +1870,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
             row.dataset.index = index;
             
             // Eğer bu playlist şu an çalan sıraya eşitse ve bu şarkı çalınıyorsa vurgula
-            const isCurrentlyPlaying = (selectedPlaylistKey === localStorage.getItem('lastLoadedPlaylistKey')) && (index === currentIndex) && (JSON.stringify(playlist.items) === localStorage.getItem('spoMini_queue'));
+            const isCurrentlyPlaying = (selectedPlaylistKey === localStorage.getItem('lastLoadedPlaylistKey')) && (index === currentIndex) && (JSON.stringify(playlist.items) === localStorage.getItem('tiz_queue'));
             
             if (isCurrentlyPlaying) {
                 row.classList.add('is-current');
@@ -2193,7 +2193,7 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `spoMini_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `tiz_backup_${new Date().toISOString().slice(0, 10)}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -2208,10 +2208,10 @@ html,body{height:100%;margin:0;background:linear-gradient(120deg,var(--bg1),var(
                 const importedData = JSON.parse(e.target.result);
 
                 // Verileri yerel depolamaya kaydet ve yeniden yükle
-                if (importedData.queue) localStorage.setItem('spoMini_queue', JSON.stringify(importedData.queue));
-                if (importedData.playlists) localStorage.setItem('spoMini_playlists', JSON.stringify(importedData.playlists));
-                if (importedData.userInfo) localStorage.setItem('spoMini_userInfo', JSON.stringify(importedData.userInfo));
-                if (importedData.settings) localStorage.setItem('spoMini_settings', JSON.stringify(importedData.settings));
+                if (importedData.queue) localStorage.setItem('tiz_queue', JSON.stringify(importedData.queue));
+                if (importedData.playlists) localStorage.setItem('tiz_playlists', JSON.stringify(importedData.playlists));
+                if (importedData.userInfo) localStorage.setItem('tiz_userInfo', JSON.stringify(importedData.userInfo));
+                if (importedData.settings) localStorage.setItem('tiz_settings', JSON.stringify(importedData.settings));
                 
                 showInfo("Veriler başarıyla içe aktarıldı. Uygulama yeniden yükleniyor...");
                 setTimeout(() => window.location.reload(), 1500);
