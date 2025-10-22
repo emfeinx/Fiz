@@ -1,7 +1,7 @@
-Harika, yüklediğiniz HTML dosyası, SpoMini - Güçlü Mini Player adlı bir müzik çalar uygulamasına ait detayları gösteriyor. Bu bilgilere dayanarak, projeniz için profesyonel bir GitHub README yazısı hazırladım:
 
-🎶 SpoMini — Güçlü Mini Player
-SpoMini, minimalist ve şık bir arayüzde güçlü müzik dinleme deneyimi sunan, tamamen kişiselleştirilebilir bir mini oynatıcıdır. YouTube entegrasyonu sayesinde dilediğiniz müziği kolayca sıraya ekleyebilir ve gelişmiş özelliklerle çalma listenizi yönetebilirsiniz.
+
+🎶 Fiz — Güçlü Mini Player
+Fiz, minimalist ve şık bir arayüzde güçlü müzik dinleme deneyimi sunan, tamamen kişiselleştirilebilir bir mini oynatıcıdır. YouTube entegrasyonu sayesinde dilediğiniz müziği kolayca sıraya ekleyebilir ve gelişmiş özelliklerle çalma listenizi yönetebilirsiniz.
 
 ✨ Temel Özellikler
 Uygulamanın ana işlevselliği ve tasarımından çıkarılan temel özellikler şunlardır:
